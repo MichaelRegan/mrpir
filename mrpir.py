@@ -1,41 +1,58 @@
 from numbers import Number
+import string
 from gpiozero import MotionSensor
 from signal import pause
 from paho.mqtt import client as mqttpub
 import time
-from decouple import config
+from decouple import UndefinedValueError, config
 
 myclient = ""
 pir = ""
 
-# Place user and password in local .env file
-MQTT_USER = config('MQTT_USER_NAME')
-MQTT_PASSWORD = config('MQTT_PASSWORD')
-MQTT_DEVICE = config('MQTT_DEVICE')
-MQTT_CLIENT_ID = config ("MQTT_CLIENT_ID")
-MQTT_BROKER = config ("MQTT_BROKER")
-MQTT_PORT = config ("MQTT_PORT", cast=int)
+try:
+    # Place user and password in local .env file
+    MQTT_USER = config('MQTT_USER_NAME')
+    MQTT_PASSWORD = config('MQTT_PASSWORD')
+    MQTT_DEVICE = config('MQTT_DEVICE')
+    MQTT_CLIENT_ID = config ("MQTT_CLIENT_ID")
+    MQTT_BROKER = config ("MQTT_BROKER")
+    MQTT_PORT = config ("MQTT_PORT", cast=int)
 
-PIR_PIN = config ("PIR_PIN")
+    PIR_PIN = config ("PIR_PIN")
+    MQTT_LOGGING = config ("MQTT_LOGGING", cast=bool)
 
-CONFIG_TOPIC = "homeassistant/binary_sensor/" + MQTT_DEVICE + "/config"
-CONFIG_PAYLOAD = '{"name": "' + MQTT_DEVICE + '", "device_class": "motion", "state_topic": "homeassistant/binary_sensor/' + MQTT_DEVICE + '/state"}'
-TOPIC = "homeassistant/binary_sensor/' + MQTT_DEVICE + '/state"
+    CONFIG_TOPIC = "homeassistant/binary_sensor/" + MQTT_DEVICE + "/config"
+    CONFIG_PAYLOAD = '{"name": "' + MQTT_DEVICE + '", "device_class": "motion", "state_topic": "homeassistant/binary_sensor/' + MQTT_DEVICE + '/state"}'
+    TOPIC = 'homeassistant/binary_sensor/' + MQTT_DEVICE + '/state'
+
+except UndefinedValueError as err:
+    print(err)
+    exit()
+
+mqttpub.Client.mqtt_connection_error = False
+mqttpub.Client.mqtt_connection_error_rc = 0
+mqttpub.Client.MQTT_LOGGING = MQTT_LOGGING
 
 def on_connect(client, userdata, flags, rc):
     if rc==0:
         client.connected_flag=True #set flag
-        print("connected OK Returned code =",rc)
+        #print("connected OK Returned code =", rc)
         #client.subscribe("$SYS/#")
     else:
-        print("Bad connection Returned code = ",rc)
+        #print("Bad connection Returned code = ", rc)
+        client.mqtt_connection_error = True
+        client.mqtt_connection_error_rc = rc
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
 def on_disconnect(client, userdata, rc):
-    print("disconnecting reason  ",str(rc))
+    print("disconnecting reason  ", str(rc))
     client.loop_stop()
+
+def on_log(client, userdata, level, buf):
+    if client.MQTT_LOGGING:
+        print("log:", buf)
 
 def connect_mqtt():
     # Set Connecting Client ID
@@ -45,9 +62,11 @@ def connect_mqtt():
     myclient.username_pw_set(MQTT_USER, MQTT_PASSWORD)
     myclient.loop_start()
     myclient.connect(MQTT_BROKER, MQTT_PORT)
-    while not myclient.is_connected():
+    while not myclient.is_connected() and not myclient.mqtt_connection_error:
         time.sleep(1)
     myclient.loop_stop()
+    if (myclient.mqtt_connection_error):
+        raise Exception('Connection Error', myclient.mqtt_connection_error_rc)
     return myclient
 
 def publish(client, msg):
@@ -71,10 +90,16 @@ def on_no_motion():
 try:
     print("Connecting to MQTT")
     myclient = connect_mqtt()
+ 
+except Exception as inst:
+#    print("connection failed")
+    x, y = inst.args     # unpack args
+    print(str(x) + '! Paho.mqtt error code: ' + str(y))
+    exit()
 
-except:
-    print("connection failed")
-    exit(1)
+else:
+    print("Connected to MQTT")
+    myclient.on_log = on_log
 
 try:
     print("publish config")
