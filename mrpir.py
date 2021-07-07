@@ -1,3 +1,4 @@
+import logging
 from numbers import Number
 import string
 from gpiozero import MotionSensor
@@ -5,9 +6,19 @@ from signal import pause
 from paho.mqtt import client as mqttpub
 import time
 from decouple import UndefinedValueError, config
+import logging
 
 myclient = ""
 pir = ""
+
+# Setup the logger
+logger = logging.getLogger("MRPIR")
+logger.setLevel(logging.WARNING)
+ch = logging.StreamHandler();
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 try:
     # Place user and password in local .env file
@@ -16,30 +27,63 @@ try:
     MQTT_DEVICE = config('MQTT_DEVICE')
     MQTT_CLIENT_ID = config ("MQTT_CLIENT_ID")
     MQTT_BROKER = config ("MQTT_BROKER")
-    MQTT_PORT = config ("MQTT_PORT", cast=int)
-
-    PIR_PIN = config ("PIR_PIN")
-    MQTT_LOGGING = config ("MQTT_LOGGING", cast=bool)
-
     CONFIG_TOPIC = "homeassistant/binary_sensor/" + MQTT_DEVICE + "/config"
     CONFIG_PAYLOAD = '{"name": "' + MQTT_DEVICE + '", "device_class": "motion", "state_topic": "homeassistant/binary_sensor/' + MQTT_DEVICE + '/state"}'
     TOPIC = 'homeassistant/binary_sensor/' + MQTT_DEVICE + '/state'
 
 except UndefinedValueError as err:
-    print(err)
+    logger.error(str(err))
     exit()
+
+try:
+   MQTT_PORT = config ("MQTT_PORT", cast=int)
+
+except UndefinedValueError as err:
+    logger.warning(str(err) + ' Using defaul value of 1883')
+    
+except Exception as err:
+    logger.error(str(err))
+    exit()
+
+finally:   
+    MQTT_PORT = 1883
+
+try:
+    PIR_PIN = config ("PIR_PIN")
+
+except UndefinedValueError as err:
+    logger.warning(str(err) + ' Using defaul value of 23')
+    
+except Exception as err:
+    logger.error(str(err))
+    exit()
+
+finally:
+    PIR_PIN = 23
+
+try:
+    LOGGING_LEVEL = config ("LOGGING_LEVEL", cast=int) * 10
+
+except UndefinedValueError as err:
+    logger.warning(str(err) + ' Using defaul value of WARNING log level')
+    LOGGING_LEVEL = 10
+
+finally:
+    logger.setLevel(LOGGING_LEVEL)
 
 mqttpub.Client.mqtt_connection_error = False
 mqttpub.Client.mqtt_connection_error_rc = 0
-mqttpub.Client.MQTT_LOGGING = MQTT_LOGGING
+#mqttpub.Client.LOGGING_LEVEL = LOGGING_LEVEL
+
+print(str(logger.getEffectiveLevel))
 
 def on_connect(client, userdata, flags, rc):
     if rc==0:
         client.connected_flag=True #set flag
-        #print("connected OK Returned code =", rc)
+        #logger.debug("connected OK Returned code =", rc)
         #client.subscribe("$SYS/#")
     else:
-        #print("Bad connection Returned code = ", rc)
+        #logger.debug("Bad connection Returned code = ", rc)
         client.mqtt_connection_error = True
         client.mqtt_connection_error_rc = rc
 
@@ -47,12 +91,12 @@ def on_connect(client, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
 
 def on_disconnect(client, userdata, rc):
-    print("disconnecting reason  ", str(rc))
-    client.loop_stop()
+    logger.warning("disconnecting reason: " + str(rc))
+#    client.loop_stop()
+    exit()
 
 def on_log(client, userdata, level, buf):
-    if client.MQTT_LOGGING:
-        print("log:", buf)
+    logger.info(buf)
 
 def connect_mqtt():
     # Set Connecting Client ID
@@ -60,8 +104,8 @@ def connect_mqtt():
     myclient.on_connect = on_connect
     myclient.on_disconnect = on_disconnect
     myclient.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+    myclient.connect(MQTT_BROKER, MQTT_PORT, keepalive=45)
     myclient.loop_start()
-    myclient.connect(MQTT_BROKER, MQTT_PORT)
     while not myclient.is_connected() and not myclient.mqtt_connection_error:
         time.sleep(1)
     myclient.loop_stop()
@@ -73,58 +117,58 @@ def publish(client, msg):
     result = client.publish(TOPIC, msg)
     # result: [0, 1]
     status = result[0]
-    if status == 0:
-        print(f"Send `{msg}` to topic `{TOPIC}`")
-    else:
-        print(f"Failed to send message to topic {TOPIC}")
+#    if status == 0:
+#        logger.debug(f"Send `{msg}` to topic `{TOPIC}`")
+#    else:
+#        logger.debug(f"Failed to send message to topic {TOPIC}")
 
 def on_motion():
-    print("motion detected")
+    logger.info("Motion Detected")
     publish(myclient, "ON")
     
 def on_no_motion():
-    print("motion off")
+    logger.info("motion off")
     publish(myclient, "OFF")
 
-
 try:
-    print("Connecting to MQTT")
+    logger.info("Connecting to MQTT")
     myclient = connect_mqtt()
  
 except Exception as inst:
-#    print("connection failed")
+#    logger.debug("connection failed")
     x, y = inst.args     # unpack args
-    print(str(x) + '! Paho.mqtt error code: ' + str(y))
+    logger.error(str(x) + '! Paho.mqtt error code: ' + str(y))
     exit()
 
 else:
-    print("Connected to MQTT")
+    logger.info("Connected to MQTT")
     myclient.on_log = on_log
 
 try:
-    print("publish config")
+#    logger.info("publish config")
     myclient.publish(CONFIG_TOPIC, CONFIG_PAYLOAD)
-    print("Connecting to PIR on pin:", PIR_PIN)
+    logger.info("Connecting to PIR on pin: %s" % PIR_PIN)
     pir = MotionSensor(PIR_PIN)
     pir.when_motion = on_motion
     pir.when_no_motion = on_no_motion
-    print ("waiting for motion")
+    logger.info("waiting for motion")
 #    pause()
     myclient.loop_start()
-    time.sleep(1)
+#    time.sleep(1)
     myclient.loop_forever()
 
 except KeyboardInterrupt:
-    print (' ')
-    print ('Disconnecting from MQTT broker...')
+    logger.info (' ')
+    logger.info ('Disconnecting from MQTT broker...')
 
 finally:
-    myclient.loop_start()
-    myclient.disconnect()
-    while myclient.is_connected():
-        time.sleep(1)
-    print("connect done")
+    if myclient.is_connected():
+        myclient.disconnect()
+        myclient.loop_start()
+        while myclient.is_connected():
+            time.sleep(1)
+    
     myclient.loop_stop()
     pir.close()
-    print ('done')
+    logger.info ('Done')
 
