@@ -6,7 +6,7 @@ from signal import pause
 from paho.mqtt import client as mqttpub
 import time
 from decouple import UndefinedValueError, config
-import logging
+import os
 
 myclient = ""
 pir = ""
@@ -123,6 +123,7 @@ def publish(client, msg):
 #        logger.debug(f"Failed to send message to topic {TOPIC}")
 
 def on_motion():
+    os.system("xscreensaver-command -deactivate")
     logger.info("Motion Detected")
     publish(myclient, "ON")
     
@@ -154,7 +155,6 @@ try:
     logger.info("waiting for motion")
 #    pause()
     myclient.loop_start()
-#    time.sleep(1)
     myclient.loop_forever()
 
 except KeyboardInterrupt:
