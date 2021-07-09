@@ -28,7 +28,7 @@ try:
     MQTT_CLIENT_ID = config ("MQTT_CLIENT_ID")
     MQTT_BROKER = config ("MQTT_BROKER")
     CONFIG_TOPIC = "homeassistant/binary_sensor/" + MQTT_DEVICE + "/config"
-    CONFIG_PAYLOAD = '{"name": "' + MQTT_DEVICE + '", "device_class": "motion", "state_topic": "homeassistant/binary_sensor/' + MQTT_DEVICE + '/state"}'
+    CONFIG_PAYLOAD = '{"name": "' + MQTT_DEVICE + '_motion' + '", "device_class": "motion", "unique_id": "' + MQTT_CLIENT_ID + '_' + MQTT_DEVICE + '_id' + '", "state_topic": "homeassistant/binary_sensor/' + MQTT_DEVICE + '/state"}'
     TOPIC = 'homeassistant/binary_sensor/' + MQTT_DEVICE + '/state'
 
 except UndefinedValueError as err:
