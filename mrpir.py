@@ -33,17 +33,17 @@ try:
     TOPIC = 'homeassistant/binary_sensor/' + MQTT_DEVICE + '/state'
 
 except UndefinedValueError as err:
-    logger.error(str(err))
+    logger.exception("Error reading settings from .env file")
     exit()
 
 try:
    MQTT_PORT = config ("MQTT_PORT", cast=int)
 
 except UndefinedValueError as err:
-    logger.warning(str(err) + ' Using defaul value of 1883')
+    logger.warning('Warning: MQTT_PORT was not provided, using defaul value of 1883')
     
 except Exception as err:
-    logger.error(str(err))
+    logger.exception("Error reading MQTT_PORT, using defaul value of 1883")
     exit()
 
 finally:   
@@ -53,10 +53,10 @@ try:
     PIR_PIN = config ("PIR_PIN")
 
 except UndefinedValueError as err:
-    logger.warning(str(err) + ' Using defaul value of 23')
+    logger.warning('Error getting PIR_PIN from .env file, using defaul value of 23')
     
 except Exception as err:
-    logger.error(str(err))
+    logger.exception('Error getting PIR_PIN from .env file, using defaul value of 23')
     exit()
 
 finally:
@@ -66,7 +66,7 @@ try:
     LOGGING_LEVEL = config ("LOGGING_LEVEL", cast=int) * 10
 
 except UndefinedValueError as err:
-    logger.warning(str(err) + ' Using defaul value of WARNING log level')
+    logger.exception('Error getting LOGGING_LEVEL from .env file, using defaul value of WARNING log level')
     LOGGING_LEVEL = 10
 
 finally:
@@ -141,9 +141,7 @@ try:
     myclient = connect_mqtt()
  
 except Exception as inst:
-#    logger.debug("connection failed")
-    x, y = inst.args     # unpack args
-    logger.error(str(x) + '! Paho.mqtt error code: ' + str(y))
+    logger.exception('! Paho.mqtt error code: ')
     exit()
 
 else:
