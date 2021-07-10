@@ -12,7 +12,7 @@ myclient = ""
 pir = ""
 
 # Setup the logger
-logger = logging.getLogger("MRPIR")
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 #ch = logging.StreamHandler();
 ch = logging.FileHandler('/tmp/mrpir.log')
