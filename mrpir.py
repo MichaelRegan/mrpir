@@ -14,7 +14,8 @@ pir = ""
 # Setup the logger
 logger = logging.getLogger("MRPIR")
 logger.setLevel(logging.WARNING)
-ch = logging.StreamHandler();
+#ch = logging.StreamHandler();
+ch = logging.FileHandler('/tmp/mrpir.log')
 ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
@@ -123,9 +124,13 @@ def publish(client, msg):
 #        logger.debug(f"Failed to send message to topic {TOPIC}")
 
 def on_motion():
-    os.system("xscreensaver-command -deactivate")
-    logger.info("Motion Detected")
-    publish(myclient, "ON")
+    try:
+        logger.info("Turn off screen saver")
+        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + " -deactivate >> /home/pi/xscreensaver.log")
+        logger.info("Motion Detected")
+        publish(myclient, "ON")
+    except Exception as err:
+        logger.error(str(err))
     
 def on_no_motion():
     logger.info("motion off")
