@@ -8,11 +8,8 @@ import time
 from decouple import UndefinedValueError, config
 import os
 
-myclient = ""
-pir = ""
-
 # Setup the logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('mrpir')
 logger.setLevel(logging.WARNING)
 #ch = logging.StreamHandler();
 ch = logging.FileHandler('/tmp/mrpir.log')
@@ -74,26 +71,16 @@ finally:
 
 mqttpub.Client.mqtt_connection_error = False
 mqttpub.Client.mqtt_connection_error_rc = 0
-#mqttpub.Client.LOGGING_LEVEL = LOGGING_LEVEL
 
 print(str(logger.getEffectiveLevel))
 
 def on_connect(client, userdata, flags, rc):
-    if rc==0:
-        client.connected_flag=True #set flag
-        #logger.debug("connected OK Returned code =", rc)
-        #client.subscribe("$SYS/#")
-    else:
-        #logger.debug("Bad connection Returned code = ", rc)
+    if rc!=0:
         client.mqtt_connection_error = True
         client.mqtt_connection_error_rc = rc
 
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-
 def on_disconnect(client, userdata, rc):
     logger.warning("disconnecting reason: " + str(rc))
-#    client.loop_stop()
     exit()
 
 def on_log(client, userdata, level, buf):
@@ -118,14 +105,13 @@ def publish(client, msg):
     result = client.publish(TOPIC, msg)
     # result: [0, 1]
     status = result[0]
-#    if status == 0:
-#        logger.debug(f"Send `{msg}` to topic `{TOPIC}`")
-#    else:
-#        logger.debug(f"Failed to send message to topic {TOPIC}")
+    if status != 0:
+        logger.warning(f"Failed to send message to topic {TOPIC}")
 
 def on_motion():
     try:
         logger.info("Turn off screen saver")
+        time.sleep(1)
         os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + " -deactivate >> /home/pi/xscreensaver.log")
         logger.info("Motion Detected")
         publish(myclient, "ON")
@@ -157,7 +143,6 @@ try:
     pir.when_no_motion = on_no_motion
     logger.info("waiting for motion")
 #    pause()
-    myclient.loop_start()
     myclient.loop_forever()
 
 except KeyboardInterrupt:
