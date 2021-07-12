@@ -12,7 +12,8 @@ import os
 logger = logging.getLogger('mrpir')
 logger.setLevel(logging.WARNING)
 #ch = logging.StreamHandler();
-ch = logging.FileHandler('/tmp/mrpir.log')
+ch = logging.FileHandler('mrpir.log')
+# need to catch PermissionError for file handler call
 ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
