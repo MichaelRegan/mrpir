@@ -92,8 +92,11 @@ def on_connect(client, userdata, flags, rc):
         client.mqtt_connection_error_rc = rc
 
 def on_disconnect(client, userdata, rc):
-    logger.warning("disconnecting reason: " + str(rc))
-    exit()
+    if (rc):
+        logger.warning("Disconnecting on error: " + str(rc))
+        exit()
+    else:  
+        logger.info("Diconnecting from MQTT broker: " + MQTT_BROKER)
 
 def on_log(client, userdata, level, buf):
     if (logger.getEffectiveLevel == logging.DEBUG):
@@ -180,8 +183,7 @@ try:
     myclient.loop_forever()
 
 except KeyboardInterrupt:
-    logger.info (' ')
-    logger.info ('Disconnecting from MQTT broker...')
+    logger.info ('Execution stopped by user')
 
 except Exception as err:
     logger.error(str(err))
