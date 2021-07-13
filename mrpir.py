@@ -7,6 +7,7 @@ from paho.mqtt import client as mqttpub
 import time
 from decouple import UndefinedValueError, config
 import os
+import subprocess
 
 # Setup the logger
 logger = logging.getLogger('mrpir')
@@ -33,6 +34,19 @@ try:
 except UndefinedValueError as err:
     logger.exception("Error reading settings from .env file")
     exit()
+
+try:
+   MQTT_PORT = config ("XSCREENSAVER_SUPPORT", cast=bool)
+
+except UndefinedValueError as err:
+    logger.warning('Warning: XSCREENSAVER_SUPPORT was not provided, using defaul value of False')
+    
+except Exception as err:
+    logger.exception("Error reading XSCREENSAVER_SUPPORT, using defaul value of False")
+    exit()
+
+finally:   
+    XSCREENSAVER_SUPPORT = False
 
 try:
    MQTT_PORT = config ("MQTT_PORT", cast=int)
@@ -70,9 +84,6 @@ except UndefinedValueError as err:
 finally:
     logger.setLevel(LOGGING_LEVEL)
 
-mqttpub.Client.mqtt_connection_error = False
-mqttpub.Client.mqtt_connection_error_rc = 0
-
 print(str(logger.getEffectiveLevel))
 
 def on_connect(client, userdata, flags, rc):
@@ -85,10 +96,15 @@ def on_disconnect(client, userdata, rc):
     exit()
 
 def on_log(client, userdata, level, buf):
-    logger.info(buf)
+    if (logger.getEffectiveLevel == logging.DEBUG):
+        logger.debug(buf)
 
 def connect_mqtt():
     # Set Connecting Client ID
+    mqttpub.Client.mqtt_connection_error = False
+    mqttpub.Client.mqtt_connection_error_rc = 0
+    mqttpub.Client.xscreensaver_support = XSCREENSAVER_SUPPORT
+
     myclient = mqttpub.Client(MQTT_CLIENT_ID)
     myclient.on_connect = on_connect
     myclient.on_disconnect = on_disconnect
@@ -100,6 +116,7 @@ def connect_mqtt():
     myclient.loop_stop()
     if (myclient.mqtt_connection_error):
         raise Exception('Connection Error', myclient.mqtt_connection_error_rc)
+    
     return myclient
 
 def publish(client, msg):
@@ -113,9 +130,16 @@ def on_motion():
     try:
         logger.info("Turn off screen saver")
         time.sleep(1)
-        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + " -deactivate >> /home/pi/xscreensaver.log")
+
+        if (myclient.xscreensaver_support):
+            completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-deactivate"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if (completed_process.returncode):
+                logger.warning("Xscreensaver error.", completed_process.stderr)
+
+#        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + " -deactivate >> /home/pi/xscreensaver.log")
         logger.info("Motion Detected")
         publish(myclient, "ON")
+
     except Exception as err:
         logger.error(str(err))
     
@@ -142,13 +166,25 @@ try:
     pir = MotionSensor(PIR_PIN)
     pir.when_motion = on_motion
     pir.when_no_motion = on_no_motion
+
+    # Allow xscreensaver control
+    if (myclient.xscreensaver_support):
+        completed_process = subprocess.run(["/usr/bin/xhost", "+local:pi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if (completed_process.returncode):
+            logger.warning(str(completed_process.stderr))
+            # Set a xscreen support flag
+
     logger.info("waiting for motion")
 #    pause()
+    myclient.loop_start()
     myclient.loop_forever()
 
 except KeyboardInterrupt:
     logger.info (' ')
     logger.info ('Disconnecting from MQTT broker...')
+
+except Exception as err:
+    logger.error(str(err))
 
 finally:
     if myclient.is_connected():
