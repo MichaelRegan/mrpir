@@ -36,7 +36,7 @@ except UndefinedValueError as err:
     exit()
 
 try:
-   MQTT_PORT = config ("XSCREENSAVER_SUPPORT", cast=bool)
+   XSCREENSAVER_SUPPORT = config ("XSCREENSAVER_SUPPORT", cast=bool)
 
 except UndefinedValueError as err:
     logger.warning('Warning: XSCREENSAVER_SUPPORT was not provided, using defaul value of False')
