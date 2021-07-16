@@ -17,7 +17,7 @@ import systemd.journal
 #BaseConfigurator.importer = staticmethod(import_module)
 
 # Setup the logger
-with open('logging.yml', 'r') as f:
+with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r') as f:
     logger_config = yaml.safe_load(f.read())
     logging.config.dictConfig(logger_config)
     
@@ -191,5 +191,5 @@ finally:
     
     myclient.loop_stop()
     pir.close()
-    logger.info ('Done')
-
+    logger.error("Exiting with error")
+    exit("Terminated")
