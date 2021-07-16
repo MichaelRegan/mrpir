@@ -19,7 +19,7 @@ with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r') as f
 logger = logging.getLogger('mrpir')
 
 try:
-    # Place user and password in local .env file
+    # Get required settings from local .env file
     MQTT_USER = config('MQTT_USER_NAME')
     MQTT_PASSWORD = config('MQTT_PASSWORD')
     MQTT_DEVICE = config('MQTT_DEVICE')
@@ -33,6 +33,7 @@ except UndefinedValueError as err:
     logger.exception("Error reading settings from .env file")
     exit()
 
+# Get optional setting from local .env file
 try:
    XSCREENSAVER_SUPPORT = config ("XSCREENSAVER_SUPPORT", cast=bool)
 
@@ -44,32 +45,31 @@ except Exception as err:
     logger.exception("Error reading XSCREENSAVER_SUPPORT, using defaul value of False")
     XSCREENSAVER_SUPPORT = False
 
+# Get optional setting from local .env file
 try:
    MQTT_PORT = config ("MQTT_PORT", cast=int)
 
 except UndefinedValueError as err:
     logger.warning('Warning: MQTT_PORT was not provided, using defaul value of 1883')
+    MQTT_PORT = 1883
     
 except Exception as err:
     logger.exception("Error reading MQTT_PORT, using defaul value of 1883")
-    exit()
-
-finally:   
     MQTT_PORT = 1883
 
+# Get optional setting from local .env file
 try:
     PIR_PIN = config ("PIR_PIN")
 
 except UndefinedValueError as err:
     logger.warning('Error getting PIR_PIN from .env file, using defaul value of 23')
+    PIR_PIN = 23
     
 except Exception as err:
     logger.exception('Error getting PIR_PIN from .env file, using defaul value of 23')
-    exit()
-
-finally:
     PIR_PIN = 23
 
+# Get optional setting from local .env file ***** Need to update this block *******
 try:
     LOGGING_LEVEL = config ("LOGGING_LEVEL", cast=int) * 10
 
@@ -80,13 +80,15 @@ except UndefinedValueError as err:
 finally:
     logger.setLevel(LOGGING_LEVEL)
 
-print(str(logger.getEffectiveLevel))
+logger.info(str(logger.getEffectiveLevel))
 
+# When connecting to MQTT, set flags on err
 def on_connect(client, userdata, flags, rc):
     if rc!=0:
         client.mqtt_connection_error = True
         client.mqtt_connection_error_rc = rc
 
+# Capture reporting when disconnecting from MQTT
 def on_disconnect(client, userdata, rc):
     if (rc):
         logger.warning("Disconnecting on error: " + str(rc))
@@ -94,10 +96,12 @@ def on_disconnect(client, userdata, rc):
     else:  
         logger.info("Diconnecting from MQTT broker: " + MQTT_BROKER)
 
+# Log MQTT messages if set to DEBUG
 def on_log(client, userdata, level, buf):
     if (logger.getEffectiveLevel == logging.DEBUG):
         logger.debug(buf)
 
+# Connect to the MQTT broker and setup callbacks
 def connect_mqtt():
     # Set Connecting Client ID
     mqttpub.Client.mqtt_connection_error = False
@@ -110,6 +114,8 @@ def connect_mqtt():
     myclient.username_pw_set(MQTT_USER, MQTT_PASSWORD)
     myclient.connect(MQTT_BROKER, MQTT_PORT, keepalive=45)
     myclient.loop_start()
+
+    # Give some time for the connection to be established
     while not myclient.is_connected() and not myclient.mqtt_connection_error:
         time.sleep(1)
     
@@ -119,6 +125,7 @@ def connect_mqtt():
     
     return myclient
 
+# Publish MQTT message
 def publish(client, msg):
     result = client.publish(TOPIC, msg)
     # result: [0, 1]
@@ -126,26 +133,24 @@ def publish(client, msg):
     if status != 0:
         logger.warning(f"Failed to send message to topic {TOPIC}")
 
+# Take action when PIR senses motion
 def on_motion():
     try:
-        logger.info("xscreensaver support: %s.", myclient.xscreensaver_support)
-        time.sleep(1)
-
         if (myclient.xscreensaver_support):
-            logger.info("Turn off screen saver")
+            logger.debug("Turn off screen saver")
             completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-deactivate"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if (completed_process.returncode):
                 logger.warning("Xscreensaver error.", completed_process.stderr)
 
 #        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + " -deactivate >> /home/pi/xscreensaver.log")
-        logger.info("Motion Detected")
+        logger.debug("Motion Detected")
         publish(myclient, "ON")
 
     except Exception as err:
         logger.error(str(err))
     
 def on_no_motion():
-    logger.info("motion off")
+    logger.debug("motion off")
     publish(myclient, "OFF")
 
 try:
@@ -161,6 +166,7 @@ else:
     myclient.on_log = on_log
 
 try:
+    # Publish the home assistant autodiscovery entry for this motion sensor
     myclient.publish(CONFIG_TOPIC, CONFIG_PAYLOAD)
     logger.info("Connecting to PIR on pin: %s" % PIR_PIN)
     pir = MotionSensor(PIR_PIN)
@@ -186,5 +192,7 @@ finally:
     
     myclient.loop_stop()
     pir.close()
+
+    # As a service, this component should never stop. Exit with error for autorestart to kick in
     logger.error("Exiting with error")
     exit("Terminated")
