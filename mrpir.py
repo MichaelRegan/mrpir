@@ -1,26 +1,27 @@
-import logging
-from numbers import Number
+import os
+import time
 import string
+import yaml
+import logging
+from importlib import import_module
+import logging.config
+#from logging.config import BaseConfigurator
+from numbers import Number
 from gpiozero import MotionSensor
 from signal import pause
 from paho.mqtt import client as mqttpub
-import time
 from decouple import UndefinedValueError, config
-import os
 import subprocess
-from systemd.journal import JournalHandler
+import systemd.journal
+
+#BaseConfigurator.importer = staticmethod(import_module)
 
 # Setup the logger
+with open('logging.yml', 'r') as f:
+    logger_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logger_config)
+    
 logger = logging.getLogger('mrpir')
-logger.setLevel(logging.WARNING)
-#ch = logging.StreamHandler();
-#ch = logging.FileHandler('mrpir.log')
-ch = JournalHandler()
-# need to catch PermissionError for file handler call
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 try:
     # Place user and password in local .env file
@@ -165,25 +166,13 @@ else:
     myclient.on_log = on_log
 
 try:
-#    logger.info("publish config")
     myclient.publish(CONFIG_TOPIC, CONFIG_PAYLOAD)
     logger.info("Connecting to PIR on pin: %s" % PIR_PIN)
     pir = MotionSensor(PIR_PIN)
     pir.when_motion = on_motion
     pir.when_no_motion = on_no_motion
 
-    # Allow xscreensaver control
-    # if (myclient.xscreensaver_support):
-    #     logger.info("/usr/bin/xhost +local:pi")
-    #     completed_process = subprocess.run(["/usr/bin/xhost", "+local:pi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    #     if (completed_process.returncode):
-    #         logger.warning(str(completed_process.stderr))
-#        else:
-#            logger.warning(str(completed_process.stdout))
-            # Set a xscreen support flag
-
     logger.info("waiting for motion")
-#    pause()
     myclient.loop_start()
     myclient.loop_forever()
 
