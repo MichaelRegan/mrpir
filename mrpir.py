@@ -8,12 +8,14 @@ import time
 from decouple import UndefinedValueError, config
 import os
 import subprocess
+from systemd.journal import JournalHandler
 
 # Setup the logger
 logger = logging.getLogger('mrpir')
 logger.setLevel(logging.WARNING)
 #ch = logging.StreamHandler();
-ch = logging.FileHandler('mrpir.log')
+#ch = logging.FileHandler('mrpir.log')
+ch = JournalHandler()
 # need to catch PermissionError for file handler call
 ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -40,12 +42,10 @@ try:
 
 except UndefinedValueError as err:
     logger.warning('Warning: XSCREENSAVER_SUPPORT was not provided, using defaul value of False')
+    XSCREENSAVER_SUPPORT = False
     
 except Exception as err:
     logger.exception("Error reading XSCREENSAVER_SUPPORT, using defaul value of False")
-    exit()
-
-finally:   
     XSCREENSAVER_SUPPORT = False
 
 try:
@@ -116,6 +116,7 @@ def connect_mqtt():
     myclient.loop_start()
     while not myclient.is_connected() and not myclient.mqtt_connection_error:
         time.sleep(1)
+    
     myclient.loop_stop()
     if (myclient.mqtt_connection_error):
         raise Exception('Connection Error', myclient.mqtt_connection_error_rc)
@@ -131,10 +132,11 @@ def publish(client, msg):
 
 def on_motion():
     try:
-        logger.info("Turn off screen saver")
+        logger.info("xscreensaver support: %s.", myclient.xscreensaver_support)
         time.sleep(1)
 
         if (myclient.xscreensaver_support):
+            logger.info("Turn off screen saver")
             completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-deactivate"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if (completed_process.returncode):
                 logger.warning("Xscreensaver error.", completed_process.stderr)
@@ -171,10 +173,13 @@ try:
     pir.when_no_motion = on_no_motion
 
     # Allow xscreensaver control
-    if (myclient.xscreensaver_support):
-        completed_process = subprocess.run(["/usr/bin/xhost", "+local:pi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if (completed_process.returncode):
-            logger.warning(str(completed_process.stderr))
+    # if (myclient.xscreensaver_support):
+    #     logger.info("/usr/bin/xhost +local:pi")
+    #     completed_process = subprocess.run(["/usr/bin/xhost", "+local:pi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    #     if (completed_process.returncode):
+    #         logger.warning(str(completed_process.stderr))
+#        else:
+#            logger.warning(str(completed_process.stdout))
             # Set a xscreen support flag
 
     logger.info("waiting for motion")
