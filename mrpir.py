@@ -3,18 +3,13 @@ import time
 import string
 import yaml
 import logging
-from importlib import import_module
 import logging.config
-#from logging.config import BaseConfigurator
 from numbers import Number
 from gpiozero import MotionSensor
-from signal import pause
 from paho.mqtt import client as mqttpub
 from decouple import UndefinedValueError, config
 import subprocess
-import systemd.journal
-
-#BaseConfigurator.importer = staticmethod(import_module)
+#import systemd.journal
 
 # Setup the logger
 with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r') as f:
