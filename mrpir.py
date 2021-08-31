@@ -127,7 +127,7 @@ def connect_mqtt():
 
 # Publish MQTT message
 def publish(client, msg):
-    result = client.publish(TOPIC, msg)
+    result = client.publish(TOPIC, msg, retain=False)
     # result: [0, 1]
     status = result[0]
     if status != 0:
