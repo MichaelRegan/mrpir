@@ -167,7 +167,7 @@ else:
 
 try:
     # Publish the home assistant autodiscovery entry for this motion sensor
-    myclient.publish(CONFIG_TOPIC, CONFIG_PAYLOAD)
+    myclient.publish(CONFIG_TOPIC, CONFIG_PAYLOAD, qos=0, retain=True)
     logger.info("Connecting to PIR on pin: %s" % PIR_PIN)
     pir = MotionSensor(PIR_PIN)
     pir.when_motion = on_motion
