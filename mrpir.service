@@ -1,0 +1,25 @@
+[Unit]
+Description=Presense sensor
+After=multi-user.target
+Wants=network-online.target systemd-networkd-wait-online.service
+
+StartLimitIntervalSec=0
+StartLimitBurst=0
+
+[Service]
+Type=simple
+ExitType=main
+Restart=on-failure
+RestartSec=5s
+
+WorkingDirectory=~
+RootDirectory=/usr/bin
+
+ExecStart=/usr/bin/sudo /usr/bin/python3 /home/pi/mrpir/mrpir.py
+#ExecStart=+/usr/bin/python3 /home/pi/mrpir/mrpir.py
+#ExecStart=+python3 ./mrpir/mrpir.py
+
+User=pi
+
+[Install]
+WantedBy=multi-user.target
