@@ -93,6 +93,9 @@ WantedBy=multi-user.target
 Configure the service file with the right permissions
 ```sudo chmod 644 /lib/systemd/system/sample.service```
 
+Link to the right direcotry
+ln -s “$(pwd)/mrpir.service” /etc/systemd/system/mrpir.service
+
 Reload and enable the service
 ```
 sudo systemctl daemon-reload
