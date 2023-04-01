@@ -91,15 +91,15 @@ User=pi (or another username)
 WantedBy=multi-user.target
 ```
 Configure the service file with the right permissions
-```sudo chmod 644 /lib/systemd/system/sample.service```
+```sudo chmod 644 /lib/systemd/system/mrpir.service```
 
 Link to the right direcotry
-ln -s “$(pwd)/mrpir.service” /etc/systemd/system/mrpir.service
+ln -s “$(pwd)/mrpir.service” /lib/systemd/system/mrpir.service
 
 Reload and enable the service
 ```
 sudo systemctl daemon-reload
-sudo systemctl enable sample.service
+sudo systemctl enable mrpir.service
 ```
 Reboot just to ensure we are all set
 ```sudo reboot```
