@@ -175,7 +175,7 @@ try:
 
     logger.info("waiting for motion")
     myclient.loop_start()
-    myclient.loop_forever()
+    myclient.loop_forever(retry_first_connection=False)
 
 except KeyboardInterrupt:
     logger.info ('Execution stopped by user')
