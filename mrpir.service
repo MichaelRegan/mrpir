@@ -8,18 +8,11 @@ StartLimitBurst=0
 
 [Service]
 Type=simple
-ExitType=main
 Restart=on-failure
 RestartSec=5s
+User=<user>
 
-WorkingDirectory=~
-RootDirectory=/usr/bin
-
-ExecStart=/usr/bin/sudo /usr/bin/python3 /home/pi/mrpir/mrpir.py
-#ExecStart=+/usr/bin/python3 /home/pi/mrpir/mrpir.py
-#ExecStart=+python3 ./mrpir/mrpir.py
-
-User=pi
+ExecStart=/usr/bin/python3 /home/<user>/mrpir/mrpir.py
 
 [Install]
 WantedBy=multi-user.target
