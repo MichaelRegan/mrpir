@@ -16,7 +16,7 @@ LOGGING_LEVEL=1
 ```
 
 make sure python dependencies are installed:
-```
+``` sh
 sudo pip3 install PyYAML
 sudo pip3 install paho-mqtt
 sudo pip3 install python-decouple
@@ -24,15 +24,24 @@ sudo pip3 install python-decouple
 # Configure a raspberry pi as a KIOSK for Home Assistant
 ## Create a startup script
 1. Edit your crontab list by typing:
-sudo crontab -e
-You can launch crontab without entering sudo, but if you do, you won’t be able to run scripts that require admin privileges. In fact, you get a different list of crontabs if you don’t use sudo so don’t forget to keep using it or not using it.
+    ``` sh
+    sudo crontab -e
+    ```
+    You can launch crontab without entering sudo, but if you do, you won’t be able to run scripts that require admin privileges. In fact, you get a different list of crontabs if you don’t use sudo so don’t forget to keep using it or not using it.
 2. Add a line at the end of the file that reads like this:
-@reboot python3 /home/pi/startup.sh
+    ``` sh
+    @reboot python3 /home/pi/startup.sh
+    ```
 3. Create the file: /home/pi/startup.sh
-4. Run nano startup.sh
+4. Run 
+    ``` sh
+    nano startup.sh
+    ```
 5. Add two lines: 
-echo "${usb_flag}" | sudo tee /sys/devices/platform/soc/3f980000.usb/buspower >/dev/null
-sudo tvservice --off
+    ``` sh
+    echo "${usb_flag}" | sudo tee /sys/devices/platform/soc/3f980000.usb/buspower >/dev/null
+    sudo tvservice --off
+    ```
 6. make the startup file executable: sudo chmod a+x startup.sh
 ## Remove the cursor on the PI screen
 sudo sed -i -- "s/#xserver-command=X/xserver-command=X -nocursor/" /etc/lightdm/lightdm.conf
@@ -43,7 +52,7 @@ sudo apt install xdotool unclutter
 
 ## Automatically enter the kiosk mode and launch homeassistant url
 1. Create a file called mrscreen.desktop (or something else .desktop) in the /etc/xdg/autostart/ directory.
-``` sh
+``` bash
 sudo nano /etc/xdg/autostart/mrscreen1.desktop
 ```
 2. Use the following layout in the myapp.desktop file. 
