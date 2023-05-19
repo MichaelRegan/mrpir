@@ -2,24 +2,23 @@
 Python script to support a PIR sensor on SBC's and publish over MQTT with Home Assistant discovery support
 
 The following environment variables are used and should be stored in an ".env" file:
-```
-MQTT_USER_NAME=xyz
-MQTT_PASSWORD=xyz
-MQTT_DEVICE=xyz
-MQTT_CLIENT_ID=xyz
-MQTT_PORT=1883 or other if configured differently
-MQTT_BROKER=servername or IP of the MQTT broker
-PIR_PIN=signal pin connected to the presense sensor
-MQTT_LOGGING=0 or 1 
-XSCREENSAVER_SUPPORT=1
-LOGGING_LEVEL=1
-```
+
+    MQTT_USER_NAME=xyz
+    MQTT_PASSWORD=xyz
+    MQTT_DEVICE=xyz
+    MQTT_CLIENT_ID=xyz
+    MQTT_PORT=1883 or other if configured differently
+    MQTT_BROKER=servername or IP of the MQTT broker
+    PIR_PIN=signal pin connected to the presense sensor
+    MQTT_LOGGING=0 or 1 
+    XSCREENSAVER_SUPPORT=1
+    LOGGING_LEVEL=1
+
 
 make sure python dependencies are installed:
 
     sudo pip3 install PyYAML paho-mqtt python-decouple
 
-<br>
 <br>
 
 # Configure a raspberry pi as a KIOSK for Home Assistant
@@ -48,7 +47,7 @@ make sure python dependencies are installed:
 ``` sh
 sudo sed -i -- "s/#xserver-command=X/xserver-command=X -nocursor/" /etc/lightdm/lightdm.conf
 ```
-also see: https://raspberrypi.stackexchange.com/questions/53127/how-to-permanently-hide-mouse-pointer-or-cursor-on-raspberry-pi/53813#53813
+also see: [how to permanently hide mouse pointer or cursor on raspberry pi](https://raspberrypi.stackexchange.com/questions/53127/how-to-permanently-hide-mouse-pointer-or-cursor-on-raspberry-pi/53813#53813)
 
 Or go the app route
 ``` sh
