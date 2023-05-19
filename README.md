@@ -43,34 +43,36 @@ sudo apt install xdotool unclutter
 
 ## Automatically enter the kiosk mode and launch homeassistant url
 1. Create a file called mrscreen.desktop (or something else .desktop) in the /etc/xdg/autostart/ directory.
-```sudo nano /etc/xdg/autostart/mrscreen1.desktop```
-2. Use the following layout in the myapp.desktop file. 
+``` sh
+sudo nano /etc/xdg/autostart/mrscreen1.desktop
 ```
+2. Use the following layout in the myapp.desktop file. 
+``` toml
 [Desktop Entry]
 Exec=chromium-browser --noerrdialogs --disable-infobars --ignore-certificate-errors --kiosk https://homeassistant.mjsquared.net
 ```
 
 ## Add xscreensaver
-```
+``` sh
 sudo apt-get update
 apt-cache search xscreensaver*
 sudo apt-get install xscreensaver*
 ```
 Run from nvc or on machine, not ssh
-```
+``` sh
 xhost +local:pi (this will let the mrpir services interact with the screensaver)
 ```
 Test xscreensarver
-```
+``` sh
 xscreensaver-command -display ":0.0" -activate
 xscreensaver-command -display ":0.0" -deactivate
 ```
 ## Start mrpir:
-```
+``` sh
 sudo nano /lib/systemd/system/mrpir.service
 ```
 Past in the followign:
-```
+``` toml
 [Unit]
 Description=Presense sensor
 After=multi-user.target
@@ -97,7 +99,7 @@ Link to the right direcotry
 ln -s “$(pwd)/mrpir.service” /lib/systemd/system/mrpir.service
 
 Reload and enable the service
-```
+``` sh
 sudo systemctl daemon-reload
 sudo systemctl enable mrpir.service
 ```
@@ -105,7 +107,11 @@ Reboot just to ensure we are all set
 ```sudo reboot```
 
 ## Checking the log
-```journalctl -u mrpir.service -n 100```
+``` sh
+journalctl -u mrpir.service -n 100
+```
 
 ### Exit kiosk mode from ssh
-```pkill chromium```
+``` sh
+pkill chromium
+```
