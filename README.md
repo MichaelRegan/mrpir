@@ -1,7 +1,7 @@
 # mrpir
 Python script to support a PIR sensor on SBC's and publish over MQTT with Home Assistant discovery support
 
-The following environment variables are used and should be stored in an .env file:
+The following environment variables are used and should be stored in an ".env" file:
 ```
 MQTT_USER_NAME=xyz
 MQTT_PASSWORD=xyz
@@ -16,11 +16,12 @@ LOGGING_LEVEL=1
 ```
 
 make sure python dependencies are installed:
-``` sh
-sudo pip3 install PyYAML
-sudo pip3 install paho-mqtt
-sudo pip3 install python-decouple
-```
+
+    sudo pip3 install PyYAML paho-mqtt python-decouple
+
+<br>
+<br>
+
 # Configure a raspberry pi as a KIOSK for Home Assistant
 ## Create a startup script
 1. Edit your crontab list by typing:
@@ -44,12 +45,15 @@ sudo pip3 install python-decouple
     ```
 6. make the startup file executable: sudo chmod a+x startup.sh
 ## Remove the cursor on the PI screen
+``` sh
 sudo sed -i -- "s/#xserver-command=X/xserver-command=X -nocursor/" /etc/lightdm/lightdm.conf
+```
 also see: https://raspberrypi.stackexchange.com/questions/53127/how-to-permanently-hide-mouse-pointer-or-cursor-on-raspberry-pi/53813#53813
 
-OR
+Or go the app route
+``` sh
 sudo apt install xdotool unclutter
-
+```
 ## Automatically enter the kiosk mode and launch homeassistant url
 1. Create a file called mrscreen.desktop (or something else .desktop) in the /etc/xdg/autostart/ directory.
 ``` bash
@@ -102,11 +106,14 @@ User=pi (or another username)
 WantedBy=multi-user.target
 ```
 Configure the service file with the right permissions
-```sudo chmod 644 /lib/systemd/system/mrpir.service```
+``` sh
+sudo chmod 644 /lib/systemd/system/mrpir.service
+```
 
 Link to the right direcotry
+``` sh
 ln -s “$(pwd)/mrpir.service” /lib/systemd/system/mrpir.service
-
+```
 Reload and enable the service
 ``` sh
 sudo systemctl daemon-reload
