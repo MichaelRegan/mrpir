@@ -3,16 +3,20 @@ formatters:
   simple:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 handlers:
-  journal:
-    class: systemd.journal.JournalHandler
+#  journal:
+#    class: systemd.journal.JournalHandler
+#    level: DEBUG
+#    formatter: simple
+  console:
+    class: logging.StreamHandler
     level: DEBUG
     formatter: simple
-#    stream: ext://sys.stdout
+    stream: ext://sys.stdout
 loggers:
-  simpleExample:
+  mrpir:
     level: DEBUG
-    handlers: [journal]
+    handlers: [console]
     propagate: no
 root:
   level: DEBUG
-  handlers: [journal]
+  handlers: [console]

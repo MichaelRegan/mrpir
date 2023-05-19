@@ -15,7 +15,7 @@ import subprocess
 with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r') as f:
     logger_config = yaml.safe_load(f.read())
     logging.config.dictConfig(logger_config)
-    
+
 logger = logging.getLogger('mrpir')
 
 try:
@@ -40,7 +40,7 @@ try:
 except UndefinedValueError as err:
     logger.warning('Warning: XSCREENSAVER_SUPPORT was not provided, using defaul value of False')
     XSCREENSAVER_SUPPORT = False
-    
+
 except Exception as err:
     logger.exception("Error reading XSCREENSAVER_SUPPORT, using defaul value of False")
     XSCREENSAVER_SUPPORT = False
@@ -52,7 +52,7 @@ try:
 except UndefinedValueError as err:
     logger.warning('Warning: MQTT_PORT was not provided, using defaul value of 1883')
     MQTT_PORT = 1883
-    
+
 except Exception as err:
     logger.exception("Error reading MQTT_PORT, using defaul value of 1883")
     MQTT_PORT = 1883
@@ -64,7 +64,7 @@ try:
 except UndefinedValueError as err:
     logger.warning('Error getting PIR_PIN from .env file, using defaul value of 23')
     PIR_PIN = 23
-    
+
 except Exception as err:
     logger.exception('Error getting PIR_PIN from .env file, using defaul value of 23')
     PIR_PIN = 23
@@ -175,7 +175,7 @@ try:
 
     logger.info("waiting for motion")
     myclient.loop_start()
-    myclient.loop_forever()
+    myclient.loop_forever(retry_first_connection=False)
 
 except KeyboardInterrupt:
     logger.info ('Execution stopped by user')
