@@ -1,14 +1,14 @@
 """ This file reads pir signals and posts them to MQTT """
-import os
-import sys
-import time
-import subprocess
-import logging
-import logging.config
-from decouple import UndefinedValueError, config
-import yaml
-from gpiozero import MotionSensor
-import paho.mqtt.client as mqtt
+import os # pylint: disable=import-error
+import sys # pylint: disable=import-error
+import time # pylint: disable=import-error
+import subprocess # pylint: disable=import-error
+import logging # pylint: disable=import-error
+import logging.config # pylint: disable=import-error
+from decouple import UndefinedValueError, config # pylint: disable=import-error
+import yaml # pylint: disable=import-error
+from gpiozero import MotionSensor # pylint: disable=import-error
+import paho.mqtt.client as mqtt # pylint: disable=import-error
 
 # Setup the logger
 with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r', encoding='UTF-8') as f:
@@ -212,3 +212,8 @@ finally:
     logger.error("Exiting with error")
     # exit("Terminated")
     sys.exit(0)
+
+
+def test_on_motion():
+    """ Test on_motion """
+    on_motion() # pylint: disable=no-value-for-parameter
