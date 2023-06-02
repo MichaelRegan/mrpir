@@ -36,7 +36,7 @@ try:
 
 except UndefinedValueError as err:
     logger.exception("Error reading settings from .env file")
-    exit()
+    sys.exit(0)
 
 # Get optional setting from local .env file
 try:
@@ -160,7 +160,7 @@ def on_motion():
         logger.debug("Motion Detected")
         publish(myclient, "ON")
 
-    except Exception as on_motion_err:
+    except Exception as on_motion_err: # pylint: disable=broad-except
         logger.error(str(on_motion_err))
 
 def on_no_motion():
@@ -174,7 +174,7 @@ try:
 
 except IOError as on_no_motion_error:
     logger.exception('Connection Error: %s', on_no_motion_error.strerror)
-    exit()
+    sys.exit(0)
 
 else:
     logger.info("Connected to MQTT")
