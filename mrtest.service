@@ -1,0 +1,14 @@
+[Unit]
+Description=Python Demo Service
+
+[Service]
+Environment=PYTHONUNBUFFERED=1
+Type=notify
+# Restart=on-failure
+
+WorkingDirectory=/home/michael/mrpir
+# Environment="PYTHONPATH=$PYTHONPATH:/home/michael/.local/lib/python3.6/site-packages"
+# Command to execute when the service is started
+ExecStart=python3 /home/michael/mrpir/testservice.py --serve-in-foreground
+
+# user=michael
