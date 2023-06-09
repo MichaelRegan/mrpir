@@ -3,23 +3,23 @@ Description=Presense sensor
 After=multi-user.target
 Wants=network-online.target systemd-networkd-wait-online.service
 
-StartLimitIntervalSec=0
-StartLimitBurst=0
-
 [Service]
-Type=simple
+Environment=PYTHONUNBUFFERED=1
+Type=notify
 Restart=on-failure
 RestartSec=5s
+StartLimitInterval=60s
+StartLimitBurst=3
+TimeoutSec=15
+WatchdogSec=10
+
 
 WorkingDirectory=/home/michael/mrpir
-RootDirectory=/usr/bin
+# Environment="PYTHONPATH=$PYTHONPATH:/home/michael/.local/lib/python3.6/site-packages"
+# Command to execute when the service is started
+ExecStart=python3 /home/michael/mrpir/testservice.py --serve-in-foreground
 
-ExecStart=/usr/bin/python3 /home/michael/mrpir/mrpir.py
-# ExecStart=/usr/bin/sudo /usr/bin/python3 /home/michael/mrpir/mrpir.py
-#ExecStart=+/usr/bin/python3 /home/pi/mrpir/mrpir.py
-#ExecStart=+python3 ./mrpir/mrpir.py
-
-User=michael
+# user=michael
 
 [Install]
 WantedBy=multi-user.target
