@@ -131,33 +131,30 @@ class Pirservice:
         return self._mqtt_client
 
 
+    def on_motion():
+        Pirservice._logger.info("Motion detected")
+        pirservice.connect_mqtt()
+        Pirservice._mqtt_client.publish(Pirservice.TOPIC, "ON", retain=True)
 
-def on_motion():
-    Pirservice._logger.info("Motion detected")
-    pirservice.connect_mqtt()
-    Pirservice._mqtt_client.publish(pirservice.TOPIC, "ON", retain=True)
-
-def on_no_motion():
-    Pirservice._logger.info("No motion detected")
-    pirservice.connect_mqtt()
-    Pirservice._mqtt_client.publish(pirservice.TOPIC, "OFF", retain=True)
+    def on_no_motion():
+        Pirservice._logger.info("No motion detected")
+        pirservice.connect_mqtt()
+        Pirservice._mqtt_client.publish(Pirservice.TOPIC, "OFF", retain=True)
 
 pirservice = Pirservice()
-Pirservice._logger.info('Connecting to MQTT broker')
-# pirservice.connect_mqtt()
-Pirservice._logger.info('entering main loop')
-
+Pirservice._systemd_notify.notify("Status=entering main loop")
+# Pirservice._logger.info('entering main loop')
 
 try:
     pir = MotionSensor(pirservice.PIR_PIN)
-    pir.when_motion = on_motion
-    pir.when_no_motion = on_no_motion
+    pir.when_motion = pirservice.on_motion
+    pir.when_no_motion = pirservice.on_no_motion
 
     while pirservice.can_run():
-        # pirservice._mqtt_client.loop_start()
-        pir.wait_for_motion()
+        # blocking... should use wait_for_motion(timeout=5)
+        pir.wait_for_motion(timeout=5)
         Pirservice._systemd_notify.notify("WATCHDOG=1")
-        pir.wait_for_no_motion()
+        pir.wait_for_no_motion(timeout=15)
         Pirservice._systemd_notify.notify("WATCHDOG=1")
 
 finally:
