@@ -112,7 +112,8 @@ class Pirservice:
         self._logger.debug("MQTT log: %s", buf)
 
     def __del__(self):
-        self.pir.close()
+        Pirservice.pir.close()
+        #self.pir.close()
 
         # Start a background thread to process MQTT messages
         Pirservice._mqtt_client.loop_stop()

@@ -17,7 +17,7 @@ WatchdogSec=10
 WorkingDirectory=/home/michael/mrpir
 # Environment="PYTHONPATH=$PYTHONPATH:/home/michael/.local/lib/python3.6/site-packages"
 # Command to execute when the service is started
-ExecStart=python3 /home/michael/mrpir/testservice.py --serve-in-foreground
+ExecStart=python3 /home/michael/mrpir/mrpir.py --serve-in-foreground
 
 # user=michael
 
