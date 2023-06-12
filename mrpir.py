@@ -1,5 +1,6 @@
 # Python script for the Python Demo Service
 import os
+import subprocess
 import sys
 import time
 import signal # pylint: disable=import-error
@@ -94,11 +95,12 @@ class Pirservice:
         # 3: Connection refused - server unavailable 
         # 4: Connection refused - bad username or password 
         # 5: Connection refused - not authorised 
+        # 7: duplicate client id - personal testing found this
         # 6-255: Currently unused.
         if rc == 0:
             self.is_mqtt_connected = True     
             self._logger.info("Connected to MQTT broker")
-            self._mqtt_client.subscribe(self.TOPIC)
+            # self._mqtt_client.subscribe(self.TOPIC)
             self._mqtt_client.publish(self.CONFIG_TOPIC, self.CONFIG_PAYLOAD, retain=True)
         else:
             self._logger.error("Failed to connect to MQTT broker with error code %s", rc)
@@ -131,14 +133,31 @@ class Pirservice:
         Pirservice._systemd_notify.notify("STOPPING=1")
 
 def on_motion():
+    """ Take action when PIR senses motion """
     Pirservice._logger.info("Motion detected")
     # pirservice.connect_mqtt()
-    Pirservice._mqtt_client.publish(Pirservice.TOPIC, "ON", retain=True)
+    Pirservice._mqtt_client.publish(pirservice.TOPIC, "ON", retain=False)
+    try:
+        # if myclient.xscreensaver_support:
+            # logger.debug("Turn off screen saver")
+        completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
+                ":0.0", "-deactivate"], \
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+            # if completed_process.returncode:
+            #     logger.error("Xscreensaver error: %s", completed_process.returncode)
+
+#        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + \
+#        " -deactivate >> /home/pi/xscreensaver.log")
+        Pirservice._logger.debug("Motion Detected")
+
+    except Exception as on_motion_err: # pylint: disable=broad-except
+         Pirservice._logger.error(str(on_motion_err))
+
 
 def on_no_motion():
     Pirservice._logger.info("No motion detected")
-    pirservice.connect_mqtt()
-    Pirservice._mqtt_client.publish(Pirservice.TOPIC, "OFF", retain=True)
+    # pirservice.connect_mqtt()
+    Pirservice._mqtt_client.publish(pirservice.TOPIC, "OFF", retain=True)
 
 if __name__ == '__main__':
     pirservice = Pirservice()
@@ -147,14 +166,12 @@ if __name__ == '__main__':
 
     try:
 
-        pirservice.when_motion = on_motion
-        pirservice.when_no_motion = on_no_motion
+        pirservice.pir.when_motion = on_motion
+        pirservice.pir.when_no_motion = on_no_motion
 
         while pirservice.can_run():
             # mqtt is working on a background thread, so we need to wait for it to connect
             pirservice.pir.wait_for_motion(timeout=5)
-            Pirservice._systemd_notify.notify("WATCHDOG=1")
-            pirservice.pir.wait_for_no_motion(timeout=5)
             Pirservice._systemd_notify.notify("WATCHDOG=1")
 
     finally:
