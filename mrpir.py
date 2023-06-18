@@ -84,8 +84,8 @@ class Pirservice:
 
         Pirservice._systemd_notify.notify("Status=Setting up PIR connection")
         self.pir = MotionSensor(self.PIR_PIN)
-        pirservice.pir.when_motion = self.on_motion
-        pirservice.pir.when_no_motion = self.on_no_motion
+        self.pir.when_motion = self.on_motion
+        self.pir.when_no_motion = self.on_no_motion
 
         # Finally, notify systemd
         Pirservice._systemd_notify.notify("READY=1")
