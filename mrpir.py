@@ -136,7 +136,7 @@ class Pirservice:
         """ can run for SIGINT """
         return not self.shutdown_requested
 
-    def request_shutdown(self, *args):
+    def request_shutdown(self, *args): # pylint: disable=unused-argument
         """ request shutdown for SIGINT """
         print('Request to shutdown received, stopping')
         self.shutdown_requested = True
@@ -168,7 +168,6 @@ class Pirservice:
 
 # main loop
 if __name__ == '__main__':
-    """ main loop """
     pirservice = Pirservice()
     pirservice.notify("Status=entering main loop")
 
