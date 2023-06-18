@@ -1,4 +1,7 @@
-# Python script for the Python Demo Service
+"""
+This is a Python script to monitor a PIR sensor and publish the state to MQTT.
+"""
+
 import os
 import subprocess
 import sys
@@ -13,6 +16,8 @@ import yaml
 from gpiozero import MotionSensor # pylint: disable=import-error
 
 class Pirservice:
+    """ Class to monitor a PIR sensor and publish the state to MQTT. """
+    # pylint: disable=too-many-instance-attributes
 
     # Private variables
     _systemd_notify = sdnotify.SystemdNotifier()
@@ -20,7 +25,7 @@ class Pirservice:
     _mqtt_client = None
 
     _mqtt_connection_error = False
-    _mqtt_connection_error_rc = 0
+    # _mqtt_connection_error_rc = 0
     shutdown_requested = False
 
     def __init__(self):
@@ -31,8 +36,8 @@ class Pirservice:
 
         # Setup logging
         with open(os.path.abspath(os.path.dirname(__file__)) + \
-                  '/logging.yml', 'r', encoding='UTF-8') as f:
-            logger_config = yaml.safe_load(f.read())
+                  '/logging.yml', 'r', encoding='UTF-8') as file_steam:
+            logger_config = yaml.safe_load(file_steam.read())
             logging.config.dictConfig(logger_config)
 
         Pirservice._logger = logging.getLogger('mrpir')
@@ -55,7 +60,7 @@ class Pirservice:
             self.topic = 'homeassistant/binary_sensor/' + self.mqtt_device + '/state'
 
         except UndefinedValueError as err:
-            sys.exit(0)
+            sys.exit(err.message)
 
        # Get optional setting from local .env file
         self.mqtt_port = config ("MQTT_PORT", default=1883, cast=int)
@@ -88,7 +93,7 @@ class Pirservice:
         # Finally, notify systemd
         self.notify("READY=1")
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, result_code): # pylint: disable=unused-argument
         """ Handle connection to MQTT broker """
         # 0: Connection successful
         # 1: Connection refused - incorrect protocol version
@@ -98,17 +103,17 @@ class Pirservice:
         # 5: Connection refused - not authorised
         # 7: duplicate client id - personal testing found this
         # 6-255: Currently unused.
-        if rc == 0:
+        if result_code == 0:
             self.is_mqtt_connected = True
             self._logger.info("Connected to MQTT broker")
             # self._mqtt_client.subscribe(self.TOPIC)
             self._mqtt_client.publish(self.config_topic, self.config_payload, retain=True)
         else:
-            self._logger.error("Failed to connect to MQTT broker with error code %s", rc)
+            self._logger.error("Failed to connect to MQTT broker with error code %s", result_code)
 
-    def on_disconnect(self, client, userdata, rc): # pylint: disable=unused-argument
+    def on_disconnect(self, client, userdata, result_code): # pylint: disable=unused-argument
         """ Handle disconnection from MQTT broker """
-        if rc != 0:
+        if result_code != 0:
             self._logger.warning("Unexpected disconnection from MQTT broker")
             self.is_mqtt_connected = False
 
@@ -157,6 +162,7 @@ class Pirservice:
 
 
     def on_no_motion(self):
+        """ Take action when PIR senses no motion """
         Pirservice._logger.info("No motion detected")
         Pirservice._mqtt_client.publish(pirservice.topic, "OFF", retain=True)
 
@@ -175,3 +181,5 @@ if __name__ == '__main__':
 
     finally:
         pirservice.pir.close()
+        pirservice.notify("STOPPING=1")
+        sys.exit(0)
