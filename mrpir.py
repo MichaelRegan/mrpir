@@ -29,7 +29,8 @@ class Pirservice:
         Pirservice._systemd_notify.notify("Status=Setting up logging")
 
         # Setup logging
-        with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r', encoding='UTF-8') as f:
+        with open(os.path.abspath(os.path.dirname(__file__)) + \
+                  '/logging.yml', 'r', encoding='UTF-8') as f:
             logger_config = yaml.safe_load(f.read())
             logging.config.dictConfig(logger_config)
 
@@ -44,11 +45,12 @@ class Pirservice:
             self.mqtt_device = config('MQTT_DEVICE')
             self.mqtt_client_id = config ("MQTT_CLIENT_ID")
             self.mqtt_broker = config ("MQTT_BROKER")
-            self.config_topic = "homeassistant/binary_sensor/" + self.mqtt_device + "/config"
+            self.config_topic = "homeassistant/binary_sensor/" + \
+                self.mqtt_device + "/config"
             self.config_payload = '{"name": "' + self.mqtt_device + '_motion' + '", \
-                            "device_class": "motion", \
-                            "unique_id": "' + self.mqtt_client_id + '_' + self.mqtt_device + '_id' + '", \
-                            "state_topic": "homeassistant/binary_sensor/' + self.mqtt_device + '/state"}'
+                    "device_class": "motion", \
+                    "unique_id": "' + self.mqtt_client_id + '_' + self.mqtt_device + '_id' + '", \
+                    "state_topic": "homeassistant/binary_sensor/' + self.mqtt_device + '/state"}'
             self.topic = 'homeassistant/binary_sensor/' + self.mqtt_device + '/state'
 
         except UndefinedValueError as err:
@@ -64,7 +66,8 @@ class Pirservice:
 
         # Setup MQTT
         Pirservice._systemd_notify.notify("Status=Setting up MQTT Client")
-        Pirservice._mqtt_client = mqtt.Client(self.mqtt_client_id, clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
+        Pirservice._mqtt_client = mqtt.Client(self.mqtt_client_id, \
+                clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
         Pirservice._mqtt_client.enable_logger(Pirservice._logger)
         Pirservice._mqtt_client.on_connect = self.on_connect
         Pirservice._mqtt_client.on_disconnect = self.on_disconnect
@@ -85,16 +88,16 @@ class Pirservice:
         Pirservice._systemd_notify.notify("READY=1")
 
     def on_connect(self, client, userdata, flags, rc):
-        # 0: Connection successful 
-        # 1: Connection refused - incorrect protocol version 
-        # 2: Connection refused - invalid client identifier 
-        # 3: Connection refused - server unavailable 
-        # 4: Connection refused - bad username or password 
-        # 5: Connection refused - not authorised 
+        # 0: Connection successful
+        # 1: Connection refused - incorrect protocol version
+        # 2: Connection refused - invalid client identifier
+        # 3: Connection refused - server unavailable
+        # 4: Connection refused - bad username or password
+        # 5: Connection refused - not authorised
         # 7: duplicate client id - personal testing found this
         # 6-255: Currently unused.
         if rc == 0:
-            self.is_mqtt_connected = True     
+            self.is_mqtt_connected = True
             self._logger.info("Connected to MQTT broker")
             # self._mqtt_client.subscribe(self.TOPIC)
             self._mqtt_client.publish(self.config_topic, self.config_payload, retain=True)
@@ -106,7 +109,7 @@ class Pirservice:
             self._logger.warning("Unexpected disconnection from MQTT broker")
             self.is_mqtt_connected = False
 
-    def on_log(self, client, userdata, level, buf): # pylint: disable=unused-argument # pylint: disable=invalid-name 
+    def on_log(self, client, userdata, level, buf): # pylint: disable=unused-argument # pylint: disable=invalid-name
         self._logger.debug("MQTT log: %s", buf)
 
     def __del__(self):
