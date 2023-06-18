@@ -2,11 +2,10 @@
 import os
 import subprocess
 import sys
-import time
 import signal
-import sdnotify # pylint: disable=import-error
 import logging
 import logging.config
+import sdnotify # pylint: disable=import-error
 from decouple import UndefinedValueError, config # pylint: disable=import-error
 # import logging.config # pylint: disable=import-error
 import paho.mqtt.client as mqtt # pylint: disable=import-error
@@ -23,7 +22,7 @@ class Pirservice:
     _mqtt_connection_error = False
     _mqtt_connection_error_rc = 0
     shutdown_requested = False
-    
+
     def __init__(self):
         signal.signal(signal.SIGINT, self.request_shutdown)
         signal.signal(signal.SIGTERM, self.request_shutdown)
@@ -33,53 +32,52 @@ class Pirservice:
         with open(os.path.abspath(os.path.dirname(__file__)) + '/logging.yml', 'r', encoding='UTF-8') as f:
             logger_config = yaml.safe_load(f.read())
             logging.config.dictConfig(logger_config)
-        
+
         Pirservice._logger = logging.getLogger('mrpir')
         Pirservice._systemd_notify.notify("Status=Reading .env variables")
 
         # Read in reuited settings from local .env file
         try:
             # Get required settings from local .env file
-            self.MQTT_USER = config('MQTT_USER_NAME')
-            self.MQTT_PASSWORD = config('MQTT_PASSWORD')
-            self.MQTT_DEVICE = config('MQTT_DEVICE')
-            self.MQTT_CLIENT_ID = config ("MQTT_CLIENT_ID")
-            self.MQTT_BROKER = config ("MQTT_BROKER")
-            self.CONFIG_TOPIC = "homeassistant/binary_sensor/" + self.MQTT_DEVICE + "/config"
-            self.CONFIG_PAYLOAD = '{"name": "' + self.MQTT_DEVICE + '_motion' + '", \
+            self.mqtt_server = config('MQTT_USER_NAME')
+            self.mqtt_password = config('MQTT_PASSWORD')
+            self.mqtt_device = config('MQTT_DEVICE')
+            self.mqtt_client_id = config ("MQTT_CLIENT_ID")
+            self.mqtt_broker = config ("MQTT_BROKER")
+            self.config_topic = "homeassistant/binary_sensor/" + self.mqtt_device + "/config"
+            self.config_payload = '{"name": "' + self.mqtt_device + '_motion' + '", \
                             "device_class": "motion", \
-                            "unique_id": "' + self.MQTT_CLIENT_ID + '_' + self.MQTT_DEVICE + '_id' + '", \
-                            "state_topic": "homeassistant/binary_sensor/' + self.MQTT_DEVICE + '/state"}'
-            self.TOPIC = 'homeassistant/binary_sensor/' + self.MQTT_DEVICE + '/state'
+                            "unique_id": "' + self.mqtt_client_id + '_' + self.mqtt_device + '_id' + '", \
+                            "state_topic": "homeassistant/binary_sensor/' + self.mqtt_device + '/state"}'
+            self.topic = 'homeassistant/binary_sensor/' + self.mqtt_device + '/state'
 
         except UndefinedValueError as err:
             sys.exit(0)
 
        # Get optional setting from local .env file
-        self.MQTT_PORT = config ("MQTT_PORT", default=1883, cast=int)
-        self.PIR_PIN = config ("PIR_PIN", default=23)
-        self.LOGGING_LEVEL = config ("LOGGING_LEVEL", default=1, cast=int) * 10
-        self.XSCREENSAVER_SUPPORT = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
-        Pirservice._logger.setLevel(self.LOGGING_LEVEL)
+        self.mqtt_port = config ("MQTT_PORT", default=1883, cast=int)
+        self.pir_pin = config ("PIR_PIN", default=23)
+        self.logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10
+        self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
+        Pirservice._logger.setLevel(self.logging_level)
         Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel))
 
         # Setup MQTT
         Pirservice._systemd_notify.notify("Status=Setting up MQTT Client")
-        Pirservice._mqtt_client = mqtt.Client(self.MQTT_CLIENT_ID, clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
+        Pirservice._mqtt_client = mqtt.Client(self.mqtt_client_id, clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
         Pirservice._mqtt_client.enable_logger(Pirservice._logger)
         Pirservice._mqtt_client.on_connect = self.on_connect
         Pirservice._mqtt_client.on_disconnect = self.on_disconnect
         Pirservice._mqtt_client.on_log = self.on_log
-        Pirservice._mqtt_client.username_pw_set(self.MQTT_USER, self.MQTT_PASSWORD)
+        Pirservice._mqtt_client.username_pw_set(self.mqtt_server, self.mqtt_password)
         self.is_mqtt_connected = False
 
         # Connect to the MQTT broker and start the background thread
-        Pirservice._mqtt_client.connect(self.MQTT_BROKER, self.MQTT_PORT, keepalive=45)
+        Pirservice._mqtt_client.connect(self.mqtt_broker, self.mqtt_port, keepalive=45)
         Pirservice._mqtt_client.loop_start()
 
-
         Pirservice._systemd_notify.notify("Status=Setting up PIR connection")
-        self.pir = MotionSensor(self.PIR_PIN)
+        self.pir = MotionSensor(self.pir_pin)
         self.pir.when_motion = self.on_motion
         self.pir.when_no_motion = self.on_no_motion
 
@@ -99,7 +97,7 @@ class Pirservice:
             self.is_mqtt_connected = True     
             self._logger.info("Connected to MQTT broker")
             # self._mqtt_client.subscribe(self.TOPIC)
-            self._mqtt_client.publish(self.CONFIG_TOPIC, self.CONFIG_PAYLOAD, retain=True)
+            self._mqtt_client.publish(self.config_topic, self.config_payload, retain=True)
         else:
             self._logger.error("Failed to connect to MQTT broker with error code %s", rc)
 
@@ -131,9 +129,9 @@ class Pirservice:
     def on_motion(self):
         """ Take action when PIR senses motion """
         Pirservice._logger.info("Motion detected")
-        Pirservice._mqtt_client.publish(pirservice.TOPIC, "ON", retain=False)
+        Pirservice._mqtt_client.publish(pirservice.topic, "ON", retain=False)
         try:
-            if self.XSCREENSAVER_SUPPORT:
+            if self.xscreensaver_support:
                 Pirservice._logger.debug("Turn off screen saver")
                 completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
                     ":0.0", "-deactivate"], \
@@ -149,7 +147,7 @@ class Pirservice:
 
     def on_no_motion(self):
         Pirservice._logger.info("No motion detected")
-        Pirservice._mqtt_client.publish(pirservice.TOPIC, "OFF", retain=True)
+        Pirservice._mqtt_client.publish(pirservice.topic, "OFF", retain=True)
 
 # main loop
 if __name__ == '__main__':
