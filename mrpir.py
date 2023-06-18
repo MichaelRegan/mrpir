@@ -117,7 +117,7 @@ class Pirservice:
             self._logger.warning("Unexpected disconnection from MQTT broker")
             self.is_mqtt_connected = False
 
-    def on_log(self, client, userdata, level, buf): # pylint: disable=unused-argument # pylint: disable=invalid-name
+    def on_log(self, client, userdata, level, buf): # pylint: disable=unused-argument
         """ Log MQTT messages """
         self._logger.debug("MQTT log: %s", buf)
 
