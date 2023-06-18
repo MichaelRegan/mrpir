@@ -84,6 +84,8 @@ class Pirservice:
 
         Pirservice._systemd_notify.notify("Status=Setting up PIR connection")
         self.pir = MotionSensor(self.PIR_PIN)
+        pirservice.pir.when_motion = self.on_motion
+        pirservice.pir.when_no_motion = self.on_no_motion
 
         # Finally, notify systemd
         Pirservice._systemd_notify.notify("READY=1")
@@ -114,8 +116,8 @@ class Pirservice:
         self._logger.debug("MQTT log: %s", buf)
 
     def __del__(self):
-        Pirservice.pir.close()
-        #self.pir.close()
+        # Pirservice.pir.close()
+        self.pir.close()
 
         # Start a background thread to process MQTT messages
         Pirservice._mqtt_client.loop_stop()
@@ -132,45 +134,42 @@ class Pirservice:
         self.shutdown_requested = True
         Pirservice._systemd_notify.notify("STOPPING=1")
 
-def on_motion():
-    """ Take action when PIR senses motion """
-    Pirservice._logger.info("Motion detected")
-    # pirservice.connect_mqtt()
-    Pirservice._mqtt_client.publish(pirservice.TOPIC, "ON", retain=False)
-    try:
-        # if myclient.xscreensaver_support:
-            # logger.debug("Turn off screen saver")
-        completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
-                ":0.0", "-deactivate"], \
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
-            # if completed_process.returncode:
-            #     logger.error("Xscreensaver error: %s", completed_process.returncode)
+    def on_motion(self):
+        """ Take action when PIR senses motion """
+        Pirservice._logger.info("Motion detected")
+        # pirservice.connect_mqtt()
+        Pirservice._mqtt_client.publish(pirservice.TOPIC, "ON", retain=False)
+        try:
+            # if myclient.xscreensaver_support:
+                # logger.debug("Turn off screen saver")
+            completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
+                    ":0.0", "-deactivate"], \
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+                # if completed_process.returncode:
+                #     logger.error("Xscreensaver error: %s", completed_process.returncode)
 
-#        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + \
-#        " -deactivate >> /home/pi/xscreensaver.log")
-        Pirservice._logger.debug("Motion Detected")
+    #        os.system("/usr/bin/xscreensaver-command -display " + '":0.0"' + \
+    #        " -deactivate >> /home/pi/xscreensaver.log")
+            Pirservice._logger.debug("Motion Detected")
 
-    except Exception as on_motion_err: # pylint: disable=broad-except
-         Pirservice._logger.error(str(on_motion_err))
+        except Exception as on_motion_err: # pylint: disable=broad-except
+            Pirservice._logger.error(str(on_motion_err))
 
 
-def on_no_motion():
-    Pirservice._logger.info("No motion detected")
-    # pirservice.connect_mqtt()
-    Pirservice._mqtt_client.publish(pirservice.TOPIC, "OFF", retain=True)
+    def on_no_motion(self):
+        Pirservice._logger.info("No motion detected")
+        Pirservice._mqtt_client.publish(pirservice.TOPIC, "OFF", retain=True)
 
 if __name__ == '__main__':
     pirservice = Pirservice()
     Pirservice._systemd_notify.notify("Status=entering main loop")
-    # Pirservice._logger.info('entering main loop')
 
     try:
-
-        pirservice.pir.when_motion = on_motion
-        pirservice.pir.when_no_motion = on_no_motion
+        # pirservice.pir.when_motion = pirservice.on_motion
+        # pirservice.pir.when_no_motion = pirservice.on_no_motion
 
         while pirservice.can_run():
-            # mqtt is working on a background thread, so we need to wait for it to connect
+            # mqtt is working on a background thread, so we just wait for motion
             pirservice.pir.wait_for_motion(timeout=5)
             Pirservice._systemd_notify.notify("WATCHDOG=1")
 
