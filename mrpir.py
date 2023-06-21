@@ -49,17 +49,17 @@ class Pirservice:
             mqtt_device = config('MQTT_DEVICE') # Device name for the MQTT broker
             mqtt_client_id = config ("MQTT_CLIENT_ID") # Client ID for the MQTT broker
             mqtt_broker = config ("MQTT_BROKER") # IP address or FQDN to the MQTT broker
-            
+
             # Create the config topic for Home Assistant
             self.config_topic = "homeassistant/binary_sensor/" + \
                 mqtt_device + "/config"
-            
+
             # Create the config payload for Home Assistant
             self.config_payload = '{"name": "' + mqtt_device + '_motion' + '", \
                     "device_class": "motion", \
                     "unique_id": "' + mqtt_client_id + '_' + mqtt_device + '_id' + '", \
                     "state_topic": "homeassistant/binary_sensor/' + mqtt_device + '/state"}'
-            
+
             # Create the state topic for Home Assistant
             self.topic = 'homeassistant/binary_sensor/' + mqtt_device + '/state'
 
@@ -69,16 +69,22 @@ class Pirservice:
        # Get optional setting from local .env file
         mqtt_port = config ("MQTT_PORT", default=1883, cast=int) # Port for the MQTT broker
         pir_pin = config ("PIR_PIN", default=23) # GPIO pin for the PIR sensor
-        logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10 # Logging level debug=10, info=20, warning=30, error=40, critical=50. input is 1-5
-        self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool) # Support for XScreenSaver
+        
+        # Logging level debug=10, info=20, warning=30, error=40, critical=50. input is 1-5
+        logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10
+        
+        # Support for XScreenSaver
+        self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
         Pirservice._logger.setLevel(logging_level) # Set the logging level for PIR
-        Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel)) # Log the logging level
+        # Log the logging level
+        Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel))
 
-        self.notify("Status=Setting up MQTT Client") # Notify systemd that we are setting up MQTT
+        # Notify systemd that we are setting up MQTT
+        self.notify("Status=Setting up MQTT Client")
 
-        # Setup MQTT
+        # Create the MQTT client
         Pirservice._mqtt_client = mqtt.Client(mqtt_client_id, \
-                clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp") # Create the MQTT client
+                clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
         Pirservice._mqtt_client.enable_logger(Pirservice._logger) # Enable logging for MQTT
         
         # Setup MQTT callbacks
@@ -86,7 +92,8 @@ class Pirservice:
         Pirservice._mqtt_client.on_disconnect = self.on_disconnect
         Pirservice._mqtt_client.on_log = self.on_log
 
-        Pirservice._mqtt_client.username_pw_set(mqtt_user_name, mqtt_password) # Set the MQTT user name and password
+        # Set the MQTT user name and password
+        Pirservice._mqtt_client.username_pw_set(mqtt_user_name, mqtt_password)
         self.is_mqtt_connected = False # MQTT connection flag
 
         # Connect to the MQTT broker and start the background thread
