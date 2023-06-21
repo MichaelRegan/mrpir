@@ -15,12 +15,14 @@ import paho.mqtt.client as mqtt # pylint: disable=import-error
 import yaml
 from gpiozero import MotionSensor # pylint: disable=import-error
 
-class Pirservice:
+class PIRService:
     """ Class to monitor a PIR sensor and publish the state to MQTT. """
 
     # Private variables
     _systemd_notify = sdnotify.SystemdNotifier() # Send notifications for SystemD
-    _logger = logging.getLogger(__name__) # Log information and errors based on setting in .env file
+
+    # Log information and errors based on setting in logging.yml file
+    _logger = logging.getLogger(__name__)
     _mqtt_client = None # MQTT client for publishing metion events
     _mqtt_connection_error = False # MQTT connection error flag
 
@@ -38,7 +40,7 @@ class Pirservice:
             logger_config = yaml.safe_load(file_steam.read())
             logging.config.dictConfig(logger_config)
 
-        Pirservice._logger = logging.getLogger('mrpir')
+        PIRService._logger = logging.getLogger('mrpir')
         self.notify("Status=Reading .env variables")
 
         # Read in reuited settings from local .env file
@@ -64,7 +66,7 @@ class Pirservice:
             self.topic = 'homeassistant/binary_sensor/' + mqtt_device + '/state'
 
         except UndefinedValueError as err:
-            sys.exit(err.message)
+            sys.exit(err)
 
        # Get optional setting from local .env file
         mqtt_port = config ("MQTT_PORT", default=1883, cast=int) # Port for the MQTT broker
@@ -75,30 +77,30 @@ class Pirservice:
 
         # Support for XScreenSaver
         self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
-        Pirservice._logger.setLevel(logging_level) # Set the logging level for PIR
+        PIRService._logger.setLevel(logging_level) # Set the logging level for PIR
         # Log the logging level
-        Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel))
+        PIRService._logger.info(str(PIRService._logger.getEffectiveLevel))
 
         # Notify systemd that we are setting up MQTT
         self.notify("Status=Setting up MQTT Client")
 
         # Create the MQTT client
-        Pirservice._mqtt_client = mqtt.Client(mqtt_client_id, \
+        PIRService._mqtt_client = mqtt.Client(mqtt_client_id, \
                 clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
-        Pirservice._mqtt_client.enable_logger(Pirservice._logger) # Enable logging for MQTT
+        PIRService._mqtt_client.enable_logger(PIRService._logger) # Enable logging for MQTT
 
         # Setup MQTT callbacks
-        Pirservice._mqtt_client.on_connect = self.on_connect
-        Pirservice._mqtt_client.on_disconnect = self.on_disconnect
-        Pirservice._mqtt_client.on_log = self.on_log
+        PIRService._mqtt_client.on_connect = self.on_connect
+        PIRService._mqtt_client.on_disconnect = self.on_disconnect
+        PIRService._mqtt_client.on_log = self.on_log
 
         # Set the MQTT user name and password
-        Pirservice._mqtt_client.username_pw_set(mqtt_user_name, mqtt_password)
+        PIRService._mqtt_client.username_pw_set(mqtt_user_name, mqtt_password)
         self.is_mqtt_connected = False # MQTT connection flag
 
         # Connect to the MQTT broker and start the background thread
-        Pirservice._mqtt_client.connect(mqtt_broker, mqtt_port, keepalive=45)
-        Pirservice._mqtt_client.loop_start() # Start the MQTT background thread
+        PIRService._mqtt_client.connect(mqtt_broker, mqtt_port, keepalive=45)
+        PIRService._mqtt_client.loop_start() # Start the MQTT background thread
 
         self.notify("Status=Setting up PIR connection")
         self.pir = MotionSensor(pir_pin) # Setup the PIR sensor
@@ -142,14 +144,13 @@ class Pirservice:
 
     def notify(self, message):
         """ Notify systemd of status """
-        Pirservice._systemd_notify.notify(message)
+        PIRService._systemd_notify.notify(message)
 
     def __del__(self):
         """ Destructor """
-        self.pir.close()
 
-        # Start a background thread to process MQTT messages
-        Pirservice._mqtt_client.loop_stop()
+        # Stop a background thread to process MQTT messages
+        PIRService._mqtt_client.loop_stop()
 
     def can_run(self):
         """ can run for SIGINT """
@@ -163,11 +164,11 @@ class Pirservice:
 
     def on_motion(self):
         """ Take action when PIR senses motion """
-        Pirservice._logger.info("Motion detected")
-        Pirservice._mqtt_client.publish(pirservice.topic, "ON", retain=False)
+        PIRService._logger.info("Motion detected")
+        PIRService._mqtt_client.publish(self.topic, "ON", retain=False)
         try:
             if self.xscreensaver_support: # Turn off screen saver if configured
-                Pirservice._logger.debug("Turn off screen saver")
+                PIRService._logger.debug("Turn off screen saver")
 
                 # Turn off screen saver
                 completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
@@ -175,33 +176,44 @@ class Pirservice:
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
                 if completed_process.returncode:
                     # Log error
-                    Pirservice._logger.error("Xscreensaver error: %s", completed_process.returncode)
+                    PIRService._logger.error("Xscreensaver error: %s", completed_process.returncode)
 
             # Log motion detected
-            Pirservice._logger.debug("Motion Detected")
+            PIRService._logger.debug("Motion Detected")
 
         except Exception as on_motion_err: # pylint: disable=broad-except
-            Pirservice._logger.error(str(on_motion_err))
+            PIRService._logger.error(str(on_motion_err))
 
 
     def on_no_motion(self):
         """ Take action when PIR senses no motion """
-        Pirservice._logger.info("No motion detected")
-        Pirservice._mqtt_client.publish(pirservice.topic, "OFF", retain=True)
+        PIRService._logger.info("No motion detected")
+        PIRService._mqtt_client.publish(self.topic, "OFF", retain=True)
+
+    def run(self):
+        """ Run the PIR main loop """
+
+        while self.can_run():
+            # mqtt is working on a background thread, so we just wait for motion
+            self.pir.wait_for_motion(timeout=5)
+            self.notify("WATCHDOG=1") # Notify systemd that we are still running
+
+        # Stop the PIR sensor
+        self.pir.close()
+
+
+
 
 # main loop
 if __name__ == '__main__':
-    pirservice = Pirservice() # Create the PIR service
-    pirservice.notify("Status=entering main loop")
+    PIRServiceController = PIRService() # Create the PIR service
 
     try:
-        while pirservice.can_run():
-
-            # mqtt is working on a background thread, so we just wait for motion
-            pirservice.pir.wait_for_motion(timeout=5)
-            pirservice.notify("WATCHDOG=1") # Notify systemd that we are still running
+        PIRServiceController.run() # Run the PIR service as a blocking call
+    
+    except KeyboardInterrupt:
+        PIRServiceController.request_shutdown()
 
     finally:
-        pirservice.notify("STOPPING=1") # Notify systemd that we are stopping
-        pirservice.pir.close() # Close the PIR sensor
+        PIRServiceController.notify("STOPPING=1") # Notify systemd that we are stopping
         sys.exit(0)
