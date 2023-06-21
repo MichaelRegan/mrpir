@@ -69,10 +69,10 @@ class Pirservice:
        # Get optional setting from local .env file
         mqtt_port = config ("MQTT_PORT", default=1883, cast=int) # Port for the MQTT broker
         pir_pin = config ("PIR_PIN", default=23) # GPIO pin for the PIR sensor
-        
+
         # Logging level debug=10, info=20, warning=30, error=40, critical=50. input is 1-5
         logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10
-        
+
         # Support for XScreenSaver
         self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
         Pirservice._logger.setLevel(logging_level) # Set the logging level for PIR
@@ -86,7 +86,7 @@ class Pirservice:
         Pirservice._mqtt_client = mqtt.Client(mqtt_client_id, \
                 clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
         Pirservice._mqtt_client.enable_logger(Pirservice._logger) # Enable logging for MQTT
-        
+
         # Setup MQTT callbacks
         Pirservice._mqtt_client.on_connect = self.on_connect
         Pirservice._mqtt_client.on_disconnect = self.on_disconnect
@@ -168,7 +168,7 @@ class Pirservice:
         try:
             if self.xscreensaver_support: # Turn off screen saver if configured
                 Pirservice._logger.debug("Turn off screen saver")
-                
+
                 # Turn off screen saver
                 completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
                     ":0.0", "-deactivate"], \
