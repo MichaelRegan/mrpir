@@ -149,9 +149,6 @@ class PIRService:
     def __del__(self):
         """ Destructor """
 
-        # Stop a background thread to process MQTT messages
-        PIRService._mqtt_client.loop_stop()
-
     def can_run(self):
         """ can run for SIGINT """
         return not self.shutdown_requested
@@ -201,6 +198,8 @@ class PIRService:
         # Stop the PIR sensor
         self.pir.close()
 
+        # Stop a background thread to process MQTT messages
+        PIRService._mqtt_client.loop_stop()
 
 
 
