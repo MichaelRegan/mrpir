@@ -17,16 +17,14 @@ from gpiozero import MotionSensor # pylint: disable=import-error
 
 class Pirservice:
     """ Class to monitor a PIR sensor and publish the state to MQTT. """
-    # pylint: disable=too-many-instance-attributes
 
     # Private variables
-    _systemd_notify = sdnotify.SystemdNotifier()
-    _logger = logging.getLogger(__name__)
-    _mqtt_client = None
+    _systemd_notify = sdnotify.SystemdNotifier() # Send notifications for SystemD
+    _logger = logging.getLogger(__name__) # Log information and errors based on setting in .env file
+    _mqtt_client = None # MQTT client for publishing metion events
+    _mqtt_connection_error = False # MQTT connection error flag
 
-    _mqtt_connection_error = False
-    # _mqtt_connection_error_rc = 0
-    shutdown_requested = False
+    shutdown_requested = False # Shutdown requested flag
 
     def __init__(self):
         """ Constructor """
@@ -46,51 +44,63 @@ class Pirservice:
         # Read in reuited settings from local .env file
         try:
             # Get required settings from local .env file
-            mqtt_server = config('MQTT_USER_NAME')
-            mqtt_password = config('MQTT_PASSWORD')
-            mqtt_device = config('MQTT_DEVICE')
-            mqtt_client_id = config ("MQTT_CLIENT_ID")
-            mqtt_broker = config ("MQTT_BROKER")
+            mqtt_user_name = config('MQTT_USER_NAME') # User name to log into the MQTT broker
+            mqtt_password = config('MQTT_PASSWORD') # Password for the MQTT broker
+            mqtt_device = config('MQTT_DEVICE') # Device name for the MQTT broker
+            mqtt_client_id = config ("MQTT_CLIENT_ID") # Client ID for the MQTT broker
+            mqtt_broker = config ("MQTT_BROKER") # IP address or FQDN to the MQTT broker
+            
+            # Create the config topic for Home Assistant
             self.config_topic = "homeassistant/binary_sensor/" + \
                 mqtt_device + "/config"
+            
+            # Create the config payload for Home Assistant
             self.config_payload = '{"name": "' + mqtt_device + '_motion' + '", \
                     "device_class": "motion", \
                     "unique_id": "' + mqtt_client_id + '_' + mqtt_device + '_id' + '", \
                     "state_topic": "homeassistant/binary_sensor/' + mqtt_device + '/state"}'
+            
+            # Create the state topic for Home Assistant
             self.topic = 'homeassistant/binary_sensor/' + mqtt_device + '/state'
 
         except UndefinedValueError as err:
             sys.exit(err.message)
 
        # Get optional setting from local .env file
-        mqtt_port = config ("MQTT_PORT", default=1883, cast=int)
-        pir_pin = config ("PIR_PIN", default=23)
-        logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10
-        self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
-        Pirservice._logger.setLevel(logging_level)
-        Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel))
+        mqtt_port = config ("MQTT_PORT", default=1883, cast=int) # Port for the MQTT broker
+        pir_pin = config ("PIR_PIN", default=23) # GPIO pin for the PIR sensor
+        logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10 # Logging level debug=10, info=20, warning=30, error=40, critical=50. input is 1-5
+        self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool) # Support for XScreenSaver
+        Pirservice._logger.setLevel(logging_level) # Set the logging level for PIR
+        Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel)) # Log the logging level
+
+        self.notify("Status=Setting up MQTT Client") # Notify systemd that we are setting up MQTT
 
         # Setup MQTT
-        self.notify("Status=Setting up MQTT Client")
         Pirservice._mqtt_client = mqtt.Client(mqtt_client_id, \
-                clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
-        Pirservice._mqtt_client.enable_logger(Pirservice._logger)
+                clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp") # Create the MQTT client
+        Pirservice._mqtt_client.enable_logger(Pirservice._logger) # Enable logging for MQTT
+        
+        # Setup MQTT callbacks
         Pirservice._mqtt_client.on_connect = self.on_connect
         Pirservice._mqtt_client.on_disconnect = self.on_disconnect
         Pirservice._mqtt_client.on_log = self.on_log
-        Pirservice._mqtt_client.username_pw_set(mqtt_server, mqtt_password)
-        self.is_mqtt_connected = False
+
+        Pirservice._mqtt_client.username_pw_set(mqtt_user_name, mqtt_password) # Set the MQTT user name and password
+        self.is_mqtt_connected = False # MQTT connection flag
 
         # Connect to the MQTT broker and start the background thread
         Pirservice._mqtt_client.connect(mqtt_broker, mqtt_port, keepalive=45)
-        Pirservice._mqtt_client.loop_start()
+        Pirservice._mqtt_client.loop_start() # Start the MQTT background thread
 
         self.notify("Status=Setting up PIR connection")
-        self.pir = MotionSensor(pir_pin)
+        self.pir = MotionSensor(pir_pin) # Setup the PIR sensor
+
+        # Setup the PIR motion callbacks
         self.pir.when_motion = self.on_motion
         self.pir.when_no_motion = self.on_no_motion
 
-        # Finally, notify systemd
+        # Finally, notify systemd that we are ready
         self.notify("READY=1")
 
     def on_connect(self, client, userdata, flags, result_code): # pylint: disable=unused-argument
@@ -104,11 +114,13 @@ class Pirservice:
         # 7: duplicate client id - personal testing found this
         # 6-255: Currently unused.
         if result_code == 0:
-            self.is_mqtt_connected = True
-            self._logger.info("Connected to MQTT broker")
-            # self._mqtt_client.subscribe(self.TOPIC)
+            self.is_mqtt_connected = True # MQTT connection flag
+            self._logger.info("Connected to MQTT broker") # Log MQTT connection
+
+            # Publish the config payload to Home Assistant. This support auto discovery
             self._mqtt_client.publish(self.config_topic, self.config_payload, retain=True)
         else:
+            # Log MQTT connection error
             self._logger.error("Failed to connect to MQTT broker with error code %s", result_code)
 
     def on_disconnect(self, client, userdata, result_code): # pylint: disable=unused-argument
@@ -147,14 +159,18 @@ class Pirservice:
         Pirservice._logger.info("Motion detected")
         Pirservice._mqtt_client.publish(pirservice.topic, "ON", retain=False)
         try:
-            if self.xscreensaver_support:
+            if self.xscreensaver_support: # Turn off screen saver if configured
                 Pirservice._logger.debug("Turn off screen saver")
+                
+                # Turn off screen saver
                 completed_process = subprocess.run(["/usr/bin/xscreensaver-command", "-display",  \
                     ":0.0", "-deactivate"], \
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
                 if completed_process.returncode:
+                    # Log error
                     Pirservice._logger.error("Xscreensaver error: %s", completed_process.returncode)
 
+            # Log motion detected
             Pirservice._logger.debug("Motion Detected")
 
         except Exception as on_motion_err: # pylint: disable=broad-except
@@ -168,7 +184,7 @@ class Pirservice:
 
 # main loop
 if __name__ == '__main__':
-    pirservice = Pirservice()
+    pirservice = Pirservice() # Create the PIR service
     pirservice.notify("Status=entering main loop")
 
     try:
@@ -176,9 +192,9 @@ if __name__ == '__main__':
 
             # mqtt is working on a background thread, so we just wait for motion
             pirservice.pir.wait_for_motion(timeout=5)
-            pirservice.notify("WATCHDOG=1")
+            pirservice.notify("WATCHDOG=1") # Notify systemd that we are still running
 
     finally:
-        pirservice.pir.close()
-        pirservice.notify("STOPPING=1")
+        pirservice.notify("STOPPING=1") # Notify systemd that we are stopping
+        pirservice.pir.close() # Close the PIR sensor
         sys.exit(0)
