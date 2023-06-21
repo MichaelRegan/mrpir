@@ -46,47 +46,47 @@ class Pirservice:
         # Read in reuited settings from local .env file
         try:
             # Get required settings from local .env file
-            self.mqtt_server = config('MQTT_USER_NAME')
-            self.mqtt_password = config('MQTT_PASSWORD')
-            self.mqtt_device = config('MQTT_DEVICE')
-            self.mqtt_client_id = config ("MQTT_CLIENT_ID")
-            self.mqtt_broker = config ("MQTT_BROKER")
+            mqtt_server = config('MQTT_USER_NAME')
+            mqtt_password = config('MQTT_PASSWORD')
+            mqtt_device = config('MQTT_DEVICE')
+            mqtt_client_id = config ("MQTT_CLIENT_ID")
+            mqtt_broker = config ("MQTT_BROKER")
             self.config_topic = "homeassistant/binary_sensor/" + \
-                self.mqtt_device + "/config"
-            self.config_payload = '{"name": "' + self.mqtt_device + '_motion' + '", \
+                mqtt_device + "/config"
+            self.config_payload = '{"name": "' + mqtt_device + '_motion' + '", \
                     "device_class": "motion", \
-                    "unique_id": "' + self.mqtt_client_id + '_' + self.mqtt_device + '_id' + '", \
-                    "state_topic": "homeassistant/binary_sensor/' + self.mqtt_device + '/state"}'
-            self.topic = 'homeassistant/binary_sensor/' + self.mqtt_device + '/state'
+                    "unique_id": "' + mqtt_client_id + '_' + mqtt_device + '_id' + '", \
+                    "state_topic": "homeassistant/binary_sensor/' + mqtt_device + '/state"}'
+            self.topic = 'homeassistant/binary_sensor/' + mqtt_device + '/state'
 
         except UndefinedValueError as err:
             sys.exit(err.message)
 
        # Get optional setting from local .env file
-        self.mqtt_port = config ("MQTT_PORT", default=1883, cast=int)
-        self.pir_pin = config ("PIR_PIN", default=23)
-        self.logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10
+        mqtt_port = config ("MQTT_PORT", default=1883, cast=int)
+        pir_pin = config ("PIR_PIN", default=23)
+        logging_level = config ("LOGGING_LEVEL", default=1, cast=int) * 10
         self.xscreensaver_support = config ("XSCREENSAVER_SUPPORT", default=False, cast=bool)
-        Pirservice._logger.setLevel(self.logging_level)
+        Pirservice._logger.setLevel(logging_level)
         Pirservice._logger.info(str(Pirservice._logger.getEffectiveLevel))
 
         # Setup MQTT
         self.notify("Status=Setting up MQTT Client")
-        Pirservice._mqtt_client = mqtt.Client(self.mqtt_client_id, \
+        Pirservice._mqtt_client = mqtt.Client(mqtt_client_id, \
                 clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
         Pirservice._mqtt_client.enable_logger(Pirservice._logger)
         Pirservice._mqtt_client.on_connect = self.on_connect
         Pirservice._mqtt_client.on_disconnect = self.on_disconnect
         Pirservice._mqtt_client.on_log = self.on_log
-        Pirservice._mqtt_client.username_pw_set(self.mqtt_server, self.mqtt_password)
+        Pirservice._mqtt_client.username_pw_set(mqtt_server, mqtt_password)
         self.is_mqtt_connected = False
 
         # Connect to the MQTT broker and start the background thread
-        Pirservice._mqtt_client.connect(self.mqtt_broker, self.mqtt_port, keepalive=45)
+        Pirservice._mqtt_client.connect(mqtt_broker, mqtt_port, keepalive=45)
         Pirservice._mqtt_client.loop_start()
 
         self.notify("Status=Setting up PIR connection")
-        self.pir = MotionSensor(self.pir_pin)
+        self.pir = MotionSensor(pir_pin)
         self.pir.when_motion = self.on_motion
         self.pir.when_no_motion = self.on_no_motion
 
