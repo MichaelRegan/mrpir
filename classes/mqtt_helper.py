@@ -1,4 +1,3 @@
-# mqtt_helper.py
 """Module providing a supporting class to manage MQTT calls."""
 
 import logging
