@@ -1,33 +1,31 @@
-"""Module providing a supporting class to manage MQTT calls."""
+"""Module providing a class to manage MQTT communication."""
 
-import logging
-import paho.mqtt.client as mqtt  # pylint: disable=import-error
-from config.config import Config  # pylint: disable=import-error
+import logging  # Standard import should be first
+import paho.mqtt.client as mqtt  # Third-party import
+from config.config import Config  # Local import
 
 
 class MqttHelper:
-    """Class representing an MQTT Queue."""
+    """Helper class for managing MQTT communication."""
 
     def __init__(self):
-        """Constructor."""
+        """Initialize the MQTT client and connect to the server."""
         self.client = mqtt.Client()
         self.client.username_pw_set(username=Config.MQTT_USER, password=Config.MQTT_PASSWORD)
         self.client.connect(Config.MQTT_SERVER, Config.MQTT_PORT, 60)
 
     def publish(self, topic, message):
-        """Publish messages to the provided topic to MQTT."""
+        """Publish messages to the provided topic via MQTT."""
         try:
             self.client.publish(topic, message)
             logging.info("Published '%s' to topic '%s'", message, topic)
-        except (mqtt.MQTTException, ValueError) as e:
+        except mqtt.MQTTException as e:
             logging.error("Error publishing MQTT message: %s", e)
 
     def publish_config(self):
-        """Publish the config for the PIR sensor for Home Assistant through MQTT."""
+        """Publish the config for the PIR sensor to Home Assistant via MQTT."""
         try:
             self.client.publish(Config.CONFIG_TOPIC, Config.CONFIG_PAYLOAD, retain=True)
-            logging.info(
-                "Published Config '%s' to topic '%s'", Config.CONFIG_PAYLOAD, Config.CONFIG_TOPIC
-            )
-        except (mqtt.MQTTException, ValueError) as e:
+            logging.info("Published Config '%s' to topic '%s'", Config.CONFIG_PAYLOAD, Config.CONFIG_TOPIC)
+        except mqtt.MQTTException as e:
             logging.error("Error publishing MQTT config: %s", e)

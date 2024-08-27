@@ -1,15 +1,15 @@
-"""Screen control class to handle dimming and turning off/on."""
+"""Module providing a class to control screen brightness and power state."""
 
 import os
 import time
 import logging
-from subprocess import run
-from config.config import Config
+from config.config import Config  # pylint: disable=import-error
+
 
 class ScreenControl:
-    """Class to control screen brightness and power state."""
+    """Class to control the screen brightness and power state."""
 
-    def __init__(self, brightness_path=Config.BRIGHTNESS_PATH,
+    def __init__(self, brightness_path="/sys/class/backlight/10-0045/brightness",
                  dim_brightness=Config.DIM_BRIGHTNESS,
                  bright_brightness=Config.BRIGHT_BRIGHTNESS,
                  transition_time=Config.TRANSITION_TIME):
@@ -49,7 +49,7 @@ class ScreenControl:
     def turn_screen_on(self):
         """Turn the screen on using a shell command."""
         try:
-            run('wlr-randr --output DSI-1 --on', check=True, shell=True)
+            os.system('wlr-randr --output DSI-1 --on')
             logging.info("Screen turned on")
         except (OSError, ValueError) as e:
             logging.error("Error turning screen on: %s", e)
@@ -57,7 +57,7 @@ class ScreenControl:
     def turn_screen_off(self):
         """Turn the screen off using a shell command."""
         try:
-            run('wlr-randr --output DSI-1 --off', check=True, shell=True)
+            os.system('wlr-randr --output DSI-1 --off')
             logging.info("Screen turned off")
         except (OSError, ValueError) as e:
             logging.error("Error turning screen off: %s", e)
