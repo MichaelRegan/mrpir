@@ -1,4 +1,6 @@
 # mqtt_helper.py
+###Module providing a supporting class to manage MQTT calls
+
 import paho.mqtt.client as mqtt
 import logging
 from config.config import Config
@@ -17,9 +19,8 @@ class MqttHelper:
             logging.error(f"Error publishing MQTT message: {e}")
 
     def publish_config(self):
-        try:            
+        try:
             self.client.publish(Config.CONFIG_TOPIC, Config.CONFIG_PAYLOAD, retain=True)
             logging.info(f"Published Config '{Config.CONFIG_PAYLOAD}' to topic '{Config.CONFIG_TOPIC}'")
         except Exception as e:
             logging.error(f"Error publishing MQTT message: {e}")
-            
