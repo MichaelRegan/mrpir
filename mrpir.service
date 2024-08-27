@@ -12,12 +12,6 @@ Restart=always
 Type=notify
 NotifyAccess=all
 WatchdogSec=90s  # Optional: Set a watchdog timer if desired
-# Environment=PYTHONUNBUFFERED=1
-# Restart=on-failure
-# RestartSec=5s
-# StartLimitInterval=60s
-# StartLimitBurst=3
-# TimeoutSec=15
 
 [Install]
 WantedBy=default.target
