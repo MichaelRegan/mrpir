@@ -1,4 +1,4 @@
-# main.py
+"""Main module for the motion detection and screen control service."""
 
 import time
 import logging
@@ -7,7 +7,7 @@ from gpiozero import MotionSensor  # pylint: disable=import-error
 from sdnotify import SystemdNotifier  # pylint: disable=import-error
 from classes.mqtt_helper import MqttHelper
 from classes.screen_control import ScreenControl
-from config.config import Config
+from config.config import Config  # pylint: disable=import-error
 
 
 def is_night_time():
@@ -19,8 +19,8 @@ def is_night_time():
 def main():
     """Main function to handle motion detection and screen control."""
     # Setup Systemd notifier and notify that the service is starting up
-    n = SystemdNotifier()
-    n.notify("STATUS=Initializing motion detection service...")
+    notifier = SystemdNotifier()
+    notifier.notify("STATUS=Initializing motion detection service...")
 
     # Initialize the motion sensor on the configured GPIO pin
     pir = MotionSensor(Config.GPIO_PIN)
@@ -31,10 +31,10 @@ def main():
     # Initialize MQTT
     mqtt = MqttHelper()
 
-    n.notify("STATUS=Submitting configuration to MQTT for Home Assistant...")
+    notifier.notify("STATUS=Submitting configuration to MQTT for Home Assistant...")
     mqtt.publish_config()
 
-    n.notify("STATUS=Waiting for motion events...")
+    notifier.notify("STATUS=Waiting for motion events...")
     while True:
         pir.wait_for_motion()
         logging.info("Motion detected.")
@@ -42,7 +42,7 @@ def main():
         screen_control.brighten()
         screen_control.turn_screen_on()
 
-        n.notify("WATCHDOG=1")
+        notifier.notify("WATCHDOG=1")
 
         while pir.motion_detected:
             time.sleep(1)
@@ -63,18 +63,18 @@ def main():
             if not pir.motion_detected:
                 screen_control.turn_screen_off()
 
-        n.notify("WATCHDOG=1")
+        notifier.notify("WATCHDOG=1")
 
 
 if __name__ == "__main__":
-    n = SystemdNotifier()
-    n.notify("READY=1")
+    notifier = SystemdNotifier()
+    notifier.notify("READY=1")
 
     try:
         main()
     except Exception as e:
-        n.notify(f"STATUS=Service encountered an error: {e}")
+        notifier.notify("STATUS=Service encountered an error: %s" % e)
         logging.error("Service encountered an error: %s", e)
         raise
     finally:
-        n.notify("STOPPING=1")
+        notifier.notify("STOPPING=1")

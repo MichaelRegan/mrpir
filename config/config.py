@@ -1,13 +1,14 @@
-# config.py
+"""Configuration module to load and manage environment variables."""
 
 import os
 import logging
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # pylint: disable=import-error
 
 load_dotenv()
 
+
 class Config:
-    """Configuration class to load and manage environment variables."""
+    """Configuration class for loading environment variables."""
 
     try:
         # MQTT configuration
@@ -50,10 +51,11 @@ class Config:
         STATE_TOPIC = f'homeassistant/binary_sensor/{MQTT_DEVICE}/state'
         CONFIG_TOPIC = f'homeassistant/binary_sensor/{MQTT_DEVICE}/config'
         CONFIG_PAYLOAD = (
-            f'{{"name": "{MQTT_DEVICE}_motion", '
-            f'"device_class": "motion", '
-            f'"unique_id": "{MQTT_CLIENT_ID}_{MQTT_DEVICE}_id", '
-            f'"state_topic": "{STATE_TOPIC}"}}'
+            '{"name": "%s_motion", '
+            '"device_class": "motion", '
+            '"unique_id": "%s_%s_id", '
+            '"state_topic": "%s"}' % (
+                MQTT_DEVICE, MQTT_CLIENT_ID, MQTT_DEVICE, STATE_TOPIC)
         )
 
         # Night mode settings
