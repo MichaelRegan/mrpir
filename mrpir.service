@@ -1,25 +1,23 @@
 [Unit]
-Description=Presense sensor
-After=multi-user.target
-Wants=network-online.target systemd-networkd-wait-online.service
+Description=Motion Detection Service
+After=network.target
 
 [Service]
-Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/pi/Projects/pypir/venv/bin/python /home/pi/Projects/pypir/main.py
+WorkingDirectory=/home/pi/Projects/pypir
+EnvironmentFile=/home/pi/Projects/pypir/.env
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
 Type=notify
-Restart=on-failure
-RestartSec=5s
-StartLimitInterval=60s
-StartLimitBurst=3
-TimeoutSec=15
-WatchdogSec=10
-
-
-WorkingDirectory=/home/michael/mrpir
-# Environment="PYTHONPATH=$PYTHONPATH:/home/michael/.local/lib/python3.6/site-packages"
-# Command to execute when the service is started
-ExecStart=python3 /home/michael/mrpir/mrpir.py --serve-in-foreground
-
-# user=michael
+NotifyAccess=all
+WatchdogSec=90s  # Optional: Set a watchdog timer if desired
+# Environment=PYTHONUNBUFFERED=1
+# Restart=on-failure
+# RestartSec=5s
+# StartLimitInterval=60s
+# StartLimitBurst=3
+# TimeoutSec=15
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
