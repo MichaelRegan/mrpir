@@ -43,7 +43,7 @@ def main():
         while pir.motion_detected:
             time.sleep(1)
         
-        time.sleep(Config.DIM_DELAY)
+        time.sleep(Config.NO_MOTION_DELAY)
 
         logging.info("No motion detected.")
         mqtt.publish(Config.STATE_TOPIC, "OFF")
