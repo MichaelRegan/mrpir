@@ -187,12 +187,12 @@ All settings are controlled via the `.env` file. Key configurations include:
 ### Brightness Settings
     DIM_BRIGHTNESS=0        # The brightness level when dimmed (0-255)
     BRIGHT_BRIGHTNESS=230   # The brightness level when bright (0-255)
+    BRIGHTNESS_DEVICE       # As defined in the path to the brightness control file: /sys/class/backlight/{BRIGHTNESS_DEVICE}/brightness
     TRANSITION_TIME=2       # Time in seconds for brightness transitions
-    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no motion is detected
 
-### GPIO and Screen Settings
+### PIR Sensor settings
     GPIO_PIN=23             # GPIO pin connected to the PIR motion sensor
-    BRIGHTNESS_PATH=""      # Path to the brightness control file: /sys/class/backlight/{your_screen}/brightness
+    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no motion is detected
 
 ### MQTT Settings
     MQTT_SERVER=""      # MQTT server address as FQDN or IP
@@ -211,8 +211,10 @@ All settings are controlled via the `.env` file. Key configurations include:
     NIGHT_END_HOUR=6        # Hour to end night mode (24-hour format, e.g., 6 for 6 AM)
 
 ### Screen Control Commands
-    export SCREEN_OFF_COMMAND="wlr-randr --output DSI-1 --off"  # Screen on command
-    export SCREEN_ON_COMMAND="wlr-randr --output DSI-1 --on"    # Screen off command
+Turning the screen off and on is accomplished with wrl-ranr. A typical command would look like: "wlr-randr --output DSI-1 --on". The screen device can be HDMI-1, DSI-1 for the raspberry Pi official screen, or others. Check the screen options in raspberry pi.
+
+    SCREEN_DEVICE="HDMI-1"   # This could also be DSI-1 or others. 
+    SCREEN_ON_COMMAND="wlr-randr --output DSI-1 --on"    # Screen off command
 
 
 ## Contributing

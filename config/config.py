@@ -47,7 +47,7 @@ class Config:
         NO_MOTION_TIMEOUT = int(os.getenv("NO_MOTION_TIMEOUT", 3600))  # Default to 1 hour
         
         # Get screen_device
-        SCREEN_DEVICE = os.getenv("SCREEN_DEVICE");
+        SCREEN_DEVICE = os.getenv("SCREEN_DEVICE", "HDMI-1");
         if SCREEN_DEVICE is None:
             raise EnvironmentError("SCREEN_DEVICE environment variable is required but not set. Should be HDMI-1, DSI-1, etc.")
 
