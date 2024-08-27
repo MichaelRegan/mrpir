@@ -1,8 +1,8 @@
 """Module providing a class to manage MQTT communication."""
 
 import logging  # Standard import should be first
-import paho.mqtt.client as mqtt  # Third-party import
-from config.config import Config  # Local import
+import paho.mqtt.client as mqtt  # Third-party import # pylint: disable=import-error
+from config.config import Config  # Local import # pylint: disable=import-error
 
 
 class MqttHelper:
@@ -26,6 +26,7 @@ class MqttHelper:
         """Publish the config for the PIR sensor to Home Assistant via MQTT."""
         try:
             self.client.publish(Config.CONFIG_TOPIC, Config.CONFIG_PAYLOAD, retain=True)
-            logging.info("Published Config '%s' to topic '%s'", Config.CONFIG_PAYLOAD, Config.CONFIG_TOPIC)
+            logging.info("Published Config '%s' to topic '%s'", 
+                         Config.CONFIG_PAYLOAD, Config.CONFIG_TOPIC)
         except mqtt.MQTTException as e:
             logging.error("Error publishing MQTT config: %s", e)
