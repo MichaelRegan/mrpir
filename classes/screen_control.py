@@ -4,13 +4,11 @@ from subprocess import run
 import logging
 from config.config import Config
 
-TRANSITION_TYPE = {"FADE", "BRIGHTEN"}
-
 class ScreenControl:
     def __init__(self, brightness_path="/sys/class/backlight/10-0045/brightness", 
                  dim_brightness=Config.DIM_BRIGHTNESS, 
                  bright_brightness=Config.BRIGHT_BRIGHTNESS,
-                 transition_time=Config.DIM_DELAY):
+                 transition_time=Config.TRANSITION_TIME):
         self.brightness_path = brightness_path
         self.dim_brightness = dim_brightness
         self.bright_brightness = bright_brightness

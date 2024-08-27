@@ -14,14 +14,16 @@ class Config:
         MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
         MQTT_USER = os.getenv('MQTT_USER', "user")
         MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "password")
-        BRIGHTNESS_PATH = os.getenv("BRIGHTNESS_PATH")
-        if BRIGHTNESS_PATH is None:
-            raise EnvironmentError("BRIGHTNESS_PATH environment variable is required but not set.")
+        BRIGHTNESS_DEVICE = os.getenv('BRIGHTNESS_DEVICE')
+        if BRIGHTNESS_DEVICE is None:
+            raise EnvironmentError("BRIGHTNESS_DEVICE environment variable is required but not set. Check /sys/class/backlight.")
+
+        BRIGHTNESS_PATH = f'/sys/class/backlight/{BRIGHTNESS_DEVICE}/brightness'
         
         DIM_BRIGHTNESS = int(os.getenv("DIM_BRIGHTNESS", 0))
         BRIGHT_BRIGHTNESS = int(os.getenv("BRIGHT_BRIGHTNESS", 230))
         TRANSITION_TIME = int(os.getenv("TRANSITION_TIME", 2))
-        DIM_DELAY = int(os.getenv("DIM_DELAY", 30))
+        NO_MOTION_DELAY = int(os.getenv("NO_MOTION_DELAY", 30))
         GPIO_PIN = int(os.getenv("GPIO_PIN"))
         if GPIO_PIN is None:
             raise EnvironmentError("GPIO_PIN environment variable is required but not set.")
@@ -43,8 +45,14 @@ class Config:
         NIGHT_START_HOUR = int(os.getenv("NIGHT_START_HOUR", 22))  # Default to 10 PM
         NIGHT_END_HOUR = int(os.getenv("NIGHT_END_HOUR", 6))        # Default to 6 AM
         NO_MOTION_TIMEOUT = int(os.getenv("NO_MOTION_TIMEOUT", 3600))  # Default to 1 hour
-        SCREEN_OFF_COMMAND = os.getenv("SCREEN_OFF_COMMAND", "wlr-randr --output DSI-1 --off")
-        SCREEN_ON_COMMAND = os.getenv("SCREEN_ON_COMMAND", "wlr-randr --output DSI-1 --on")
+        
+        # Get screen_device
+        SCREEN_DEVICE = os.getenv("SCREEN_DEVICE");
+        if SCREEN_DEVICE is None:
+            raise EnvironmentError("SCREEN_DEVICE environment variable is required but not set. Should be HDMI-1, DSI-1, etc.")
+
+        SCREEN_OFF_COMMAND = f"wlr-randr --output {SCREEN_DEVICE} --off"
+        SCREEN_ON_COMMAND = f"wlr-randr --output {SCREEN_DEVICE} --on"
 
         # Load and configure logging level
         LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

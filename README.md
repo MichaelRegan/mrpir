@@ -54,7 +54,7 @@ mrpir is a Python application designed to control the brightness and power state
    DIM_BRIGHTNESS
    BRIGHT_BRIGHTNESS
    TRANSITION_TIME
-   DIM_DELAY
+   NO_MOTION_DELAY
    GPIO_PIN
    BRIGHTNESS_PATH
    MQTT_SERVER
@@ -188,7 +188,7 @@ All settings are controlled via the `.env` file. Key configurations include:
     DIM_BRIGHTNESS=0        # The brightness level when dimmed (0-255)
     BRIGHT_BRIGHTNESS=230   # The brightness level when bright (0-255)
     TRANSITION_TIME=2       # Time in seconds for brightness transitions
-    DIM_DELAY=5             # Delay in seconds before dimming after no motion is detected
+    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no motion is detected
 
 ### GPIO and Screen Settings
     GPIO_PIN=23             # GPIO pin connected to the PIR motion sensor
