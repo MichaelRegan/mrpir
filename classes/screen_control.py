@@ -5,8 +5,8 @@ import logging
 from config.config import Config
 
 class ScreenControl:
-    def __init__(self, brightness_path="/sys/class/backlight/10-0045/brightness", 
-                 dim_brightness=Config.DIM_BRIGHTNESS, 
+    def __init__(self, brightness_path="/sys/class/backlight/10-0045/brightness",
+                 dim_brightness=Config.DIM_BRIGHTNESS,
                  bright_brightness=Config.BRIGHT_BRIGHTNESS,
                  transition_time=Config.TRANSITION_TIME):
         self.brightness_path = brightness_path
@@ -24,7 +24,8 @@ class ScreenControl:
             logging.error(f"Error setting brightness: {e}")
 
     def smooth_transition(self, start, end, duration):
-        """Smoothly transition the screen brightness from start to end over the specified duration."""
+        """Smoothly transition the screen brightness 
+           from start to end over the specified duration."""
         steps = 50  # Number of steps in the transition
         step_delay = duration / steps  # Time between each step
         brightness_range = end - start
