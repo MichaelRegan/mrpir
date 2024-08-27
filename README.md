@@ -2,9 +2,9 @@ Here's a draft of the `README.md` file for your project:
 
 ---
 
-# PyPIR - Motion-Activated Screen Control
+# mrpir - Motion-Activated Screen Control
 
-PyPIR is a Python application designed to control the brightness and power state of a screen based on motion detection. It is optimized for use with a Raspberry Pi, a PIR motion sensor, and a connected screen. The application uses MQTT for integration with Home Assistant and features a night mode where the screen is turned off after a period of inactivity.
+mrpir is a Python application designed to control the brightness and power state of a screen based on motion detection. It is optimized for use with a Raspberry Pi, a PIR motion sensor, and a connected screen. The application uses MQTT for integration with Home Assistant and features a night mode where the screen is turned off after a period of inactivity.
 
 ## Features
 
@@ -29,8 +29,8 @@ PyPIR is a Python application designed to control the brightness and power state
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourusername/pypir.git
-   cd pypir
+   git clone https://github.com/yourusername/mrpir.git
+   cd mrpir
    ```
 
 2. **Create and Activate a Virtual Environment:**
@@ -71,32 +71,32 @@ PyPIR is a Python application designed to control the brightness and power state
 
 5. **Configure Systemd Service:**
 
-   Copy the `pypir.service` file to `/etc/systemd/system/`:
+   Copy the `mrpir.service` file to `/etc/systemd/system/`:
 
    ```bash
-   sudo cp pypir.service ~/.config/systemd/user/
+   cp mrpir.service ~/.config/systemd/user/
    ```
-    Edit ~/.config/systemd/user/pypir.service
+    Edit ~/.config/systemd/user/mrpir.service
 
     ```bash
-    sudo nano ~/.config/systemd/user/pypir.service
+    nano ~/.config/systemd/user/mrpir.service
     ```
     Update the following values:
 
     ExecStart=/full/path/to/venv/python /full/path/to/main/py
-    * eg: /home/pi/Projects/pypir/venv/bin/python /home/pi/Projects/pypir/main.py
+    * eg: /home/pi/Projects/mrpir/venv/bin/python /home/pi/Projects/mrpir/main.py
 
     WorkingDirectory=
-    * eg: /home/pi/Projects/pypir
+    * eg: /home/pi/Projects/mrpir
 
     EnvironmentFile=
-    * eg: /home/pi/Projects/pypir/.env
+    * eg: /home/pi/Projects/mrpir/.env
 
    Enable and start the service:
 
    ```bash
-   sudo systemctl --user enable pypir
-   sudo systemctl --user start pypir
+   sudo systemctl --user enable mrpir
+   sudo systemctl --user start mrpir
    ```
 
 6. **Enable and Start the User Service**
@@ -143,26 +143,26 @@ PyPIR is a Python application designed to control the brightness and power state
     ***Stop the service:***
 
     ``` bash
-    systemctl --user stop pypir.service
+    systemctl --user stop mrpir.service
     ```
 
     ***Start and restart the service:***
 
     ```bash
-    systemctl --user start pypir.service
-    systemctl --user restart pypir.service
+    systemctl --user start mrpir.service
+    systemctl --user restart mrpir.service
     ```
 
     ***Disable the service:***
 
     ```bash
-    systemctl --user disable pypir.service
+    systemctl --user disable mrpir.service
     ```
 
     ***View the system journal***
     ```bash
-    journalctl --user -xeu pypir.service
-    journalctl -u pypir.service -n 100
+    journalctl --user -xeu mrpir.service
+    journalctl -u mrpir.service -n 100
     ```
 
 ## Usage
