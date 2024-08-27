@@ -95,8 +95,8 @@ mrpir is a Python application designed to control the brightness and power state
    Enable and start the service:
 
    ```bash
-   sudo systemctl --user enable mrpir
-   sudo systemctl --user start mrpir
+   systemctl --user enable mrpir
+   systemctl --user start mrpir
    ```
 
 6. **Enable and Start the User Service**

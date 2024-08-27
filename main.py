@@ -4,8 +4,8 @@ from gpiozero import MotionSensor
 import time
 import logging
 from sdnotify import SystemdNotifier
-from scripts.mqtt_helper import MqttHelper
-from scripts.screen_control import ScreenControl  # Import the new ScreenControl class
+from classes.mqtt_helper import MqttHelper
+from classes.screen_control import ScreenControl  # Import the new ScreenControl class
 from config.config import Config
 
 def is_night_time():
