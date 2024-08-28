@@ -1,32 +1,56 @@
 """Module providing a class to manage MQTT communication."""
-
-import logging  # Standard import should be first
-import paho.mqtt.client as mqtt  # Third-party import # pylint: disable=import-error
+import logging
 from config.config import Config  # Local import # pylint: disable=import-error
-
+import paho.mqtt.client as mqtt
 
 class MqttHelper:
-    """Helper class for managing MQTT communication."""
-
-    def __init__(self):
-        """Initialize the MQTT client and connect to the server."""
+    def __init__(self, broker, port, username=None, password=None):
+        """Initialize the MQTT client."""
         self.client = mqtt.Client()
-        self.client.username_pw_set(username=Config.MQTT_USER, password=Config.MQTT_PASSWORD)
-        self.client.connect(Config.MQTT_SERVER, Config.MQTT_PORT, 60)
+        self.broker = broker
+        self.port = port
+        self.username = username
+        self.password = password
 
-    def publish(self, topic, message):
-        """Publish messages to the provided topic via MQTT."""
-        try:
-            self.client.publish(topic, message)
-            logging.info("Published '%s' to topic '%s'", message, topic)
-        except mqtt.MQTTException as e:
-            logging.error("Error publishing MQTT message: %s", e)
+        if username and password:
+            self.client.username_pw_set(username, password)
 
-    def publish_config(self):
-        """Publish the config for the PIR sensor to Home Assistant via MQTT."""
+        self.client.on_connect = self.on_connect
+        self.client.on_disconnect = self.on_disconnect
+        self.client.on_publish = self.on_publish
+
+    def on_connect(self, client, userdata, flags, rc):
+        """Callback for when the client receives a CONNACK response from the server."""
+        if rc == 0:
+            logging.info("Connected to MQTT Broker!")
+        else:
+            logging.error(f"Failed to connect, return code {rc}")
+
+    def on_disconnect(self, client, userdata, rc):
+        """Callback for when the client disconnects from the server."""
+        logging.info("Disconnected from MQTT Broker")
+
+    def on_publish(self, client, userdata, mid):
+        """Callback for when a message has been published."""
+        logging.info(f"Message {mid} published.")
+
+    def connect(self):
+        """Connect to the MQTT broker."""
         try:
-            self.client.publish(Config.CONFIG_TOPIC, Config.CONFIG_PAYLOAD, retain=True)
-            logging.info("Published Config '%s' to topic '%s'",
-                         Config.CONFIG_PAYLOAD, Config.CONFIG_TOPIC)
-        except mqtt.MQTTException as e:
-            logging.error("Error publishing MQTT config: %s", e)
+            self.client.connect(self.broker, self.port, 60)
+            self.client.loop_start()
+        except Exception as e:
+            logging.error(f"Failed to connect to MQTT Broker: {e}")
+
+    def publish(self, topic, payload, qos=0, retain=False):
+        """Publish a message to a specified topic."""
+        try:
+            result = self.client.publish(topic, payload, qos, retain)
+            result.wait_for_publish()
+        except Exception as e:
+            logging.error(f"Failed to publish message: {e}")
+
+    def disconnect(self):
+        """Disconnect from the MQTT broker."""
+        self.client.loop_stop()
+        self.client.disconnect()

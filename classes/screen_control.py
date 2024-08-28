@@ -22,7 +22,7 @@ class ScreenControl:
         try:
             with open(self.brightness_path, 'w', encoding='utf-8') as brightness_file:
                 brightness_file.write(str(level))
-            logging.info("Brightness set to %d", level)
+            # logging.info("Brightness set to %d", level)
         except (OSError, ValueError) as e:
             logging.error("Error setting brightness: %s", e)
 

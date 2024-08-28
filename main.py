@@ -16,10 +16,11 @@ def is_night_time():
     return current_hour >= Config.NIGHT_START_HOUR or current_hour < Config.NIGHT_END_HOUR
 
 
-def main():
+def main(notifier, mqtt):
     """Main function to handle motion detection and screen control."""
     # Setup Systemd notifier and notify that the service is starting up
-    notifier.notify("STATUS=Initializing motion detection service...") # pylint: disable=possibly-used-before-assignment
+    # notifier = SystemdNotifier()
+    notifier.notify("STATUS=Initializing motion detection service...")
 
     # Initialize the motion sensor on the configured GPIO pin
     pir = MotionSensor(Config.GPIO_PIN)
@@ -28,10 +29,12 @@ def main():
     screen_control = ScreenControl()
 
     # Initialize MQTT
-    mqtt = MqttHelper()
+    # mqtt = MqttHelper()
+
+    mqtt.connect()
 
     notifier.notify("STATUS=Submitting configuration to MQTT for Home Assistant...")
-    mqtt.publish_config()
+    # mqtt.publish_config()
 
     notifier.notify("STATUS=Waiting for motion events...")
     while True:
@@ -68,12 +71,14 @@ def main():
 if __name__ == "__main__":
     notifier = SystemdNotifier()
     notifier.notify("READY=1")
+    mqtt = MqttHelper(Config.MQTT_SERVER, Config.MQTT_PORT, Config.MQTT_USER, Config.MQTT_PASSWORD)
 
     try:
-        main()
+        main(notifier, mqtt)
     except Exception as e:
-        notifier.notify(f"STATUS=Service encountered an error: {e}")
+        notifier.notify("STATUS=Service encountered an error: %s" % e)
         logging.error("Service encountered an error: %s", e)
         raise
     finally:
         notifier.notify("STOPPING=1")
+        mqtt.disconnect()
