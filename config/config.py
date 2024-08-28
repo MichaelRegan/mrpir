@@ -7,7 +7,7 @@ from dotenv import load_dotenv  # pylint: disable=import-error
 load_dotenv()
 
 
-class Config:
+class Config: # pylint: disable=too-few-public-methods
     """Configuration class for loading environment variables."""
 
     try:
@@ -59,8 +59,8 @@ class Config:
         )
 
         # Night mode settings
-        NIGHT_START_HOUR = int(os.getenv("NIGHT_START_HOUR", 22))  # Default to 10 PM
-        NIGHT_END_HOUR = int(os.getenv("NIGHT_END_HOUR", 6))  # Default to 6 AM
+        NIGHT_START_HOUR = int(os.getenv("NIGHT_START_HOUR", "22"))  # Default to 10 PM
+        NIGHT_END_HOUR = int(os.getenv("NIGHT_END_HOUR", "6"))  # Default to 6 AM
         NO_MOTION_TIMEOUT = int(os.getenv("NO_MOTION_TIMEOUT", "3600"))  # Default to 1 hour
 
         # Screen device settings

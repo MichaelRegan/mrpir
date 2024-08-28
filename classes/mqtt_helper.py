@@ -26,7 +26,7 @@ class MqttHelper:
         """Publish the config for the PIR sensor to Home Assistant via MQTT."""
         try:
             self.client.publish(Config.CONFIG_TOPIC, Config.CONFIG_PAYLOAD, retain=True)
-            logging.info("Published Config '%s' to topic '%s'", 
+            logging.info("Published Config '%s' to topic '%s'",
                          Config.CONFIG_PAYLOAD, Config.CONFIG_TOPIC)
         except mqtt.MQTTException as e:
             logging.error("Error publishing MQTT config: %s", e)

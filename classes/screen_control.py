@@ -5,7 +5,6 @@ import time
 import logging
 from config.config import Config  # pylint: disable=import-error
 
-
 class ScreenControl:
     """Class to control the screen brightness and power state."""
 
@@ -28,7 +27,7 @@ class ScreenControl:
             logging.error("Error setting brightness: %s", e)
 
     def smooth_transition(self, start, end, duration):
-        """Smoothly transition the screen brightness from start to end over the specified duration."""
+        """Smoothly transition the screen brightness."""
         steps = 50  # Number of steps in the transition
         step_delay = duration / steps  # Time between each step
         brightness_range = end - start
