@@ -19,7 +19,7 @@ def is_night_time():
 def main():
     """Main function to handle motion detection and screen control."""
     # Setup Systemd notifier and notify that the service is starting up
-    notifier.notify("STATUS=Initializing motion detection service...") # pylint: disable=used-before-assignment
+    notifier.notify("STATUS=Initializing motion detection service...") # pylint: disable=possibly-used-before-assignment
 
     # Initialize the motion sensor on the configured GPIO pin
     pir = MotionSensor(Config.GPIO_PIN)
