@@ -23,7 +23,7 @@ class Config: # pylint: disable=too-few-public-methods
         # Brightness configuration
         BRIGHTNESS_DEVICE = os.getenv("BRIGHTNESS_DEVICE")
         if BRIGHTNESS_DEVICE is None:
-            raise EnvironmentError("BRIGHTNESS_DEVICE environment variable is required but not set.")
+            raise EnvironmentError("BRIGHTNESS_DEVICE environment variable is required.")
 
         BRIGHTNESS_PATH = f'/sys/class/backlight/{BRIGHTNESS_DEVICE}/brightness'
 
@@ -83,5 +83,5 @@ class Config: # pylint: disable=too-few-public-methods
     except EnvironmentError as e:
         logging.critical("Critical environment variable error: %s", e)
         raise
-    except Exception as e:
+    except RuntimeError as e:
         logging.error("Unexpected error occurred while loading configuration: %s", e)

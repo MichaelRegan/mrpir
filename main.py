@@ -16,10 +16,10 @@ def is_night_time():
     return current_hour >= Config.NIGHT_START_HOUR or current_hour < Config.NIGHT_END_HOUR
 
 
-def main():
+def main(notifier):
     """Main function to handle motion detection and screen control."""
     # Setup Systemd notifier and notify that the service is starting up
-    notifier = SystemdNotifier()
+    # notifier = SystemdNotifier()
     notifier.notify("STATUS=Initializing motion detection service...")
 
     # Initialize the motion sensor on the configured GPIO pin
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     notifier.notify("READY=1")
 
     try:
-        main()
+        main(notifier)
     except Exception as e:
         notifier.notify("STATUS=Service encountered an error: %s" % e)
         logging.error("Service encountered an error: %s", e)
