@@ -57,9 +57,9 @@ mrpir is a Python application designed to control the brightness and power state
    NO_MOTION_DELAY
    GPIO_PIN
    BRIGHTNESS_PATH
-   MQTT_SERVER
+   MQTT_BROKER
    MQTT_PORT
-   MQTT_USER
+   MQTT_USERNAME
    MQTT_PASSWORD
    MQTT_CLIENT_ID
    MQTT_DEVICE
@@ -195,9 +195,9 @@ All settings are controlled via the `.env` file. Key configurations include:
     NO_MOTION_DELAY=5       # Delay in seconds before dimming after no motion is detected
 
 ### MQTT Settings
-    MQTT_SERVER=""      # MQTT server address as FQDN or IP
+    MQTT_BROKER=""      # MQTT server address as FQDN or IP
     MQTT_PORT=1883      # MQTT server port
-    MQTT_USER=""        # MQTT username
+    MQTT_USERNAME=""        # MQTT username
     MQTT_PASSWORD=""    # MQTT password
     MQTT_CLIENT_ID=""   # MQTT client ID is a unique string for mqtt
     MQTT_DEVICE=""      # MQTT device identifier such as the rasperry pi name

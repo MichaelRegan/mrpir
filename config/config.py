@@ -12,12 +12,12 @@ class Config: # pylint: disable=too-few-public-methods
 
     try:
         # MQTT configuration
-        MQTT_SERVER = os.getenv("MQTT_SERVER")
-        if MQTT_SERVER is None:
-            raise EnvironmentError("MQTT_SERVER environment variable is required but not set.")
+        MQTT_BROKER = os.getenv("MQTT_BROKER")
+        if MQTT_BROKER is None:
+            raise EnvironmentError("MQTT_BROKER environment variable is required but not set.")
 
         MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
-        MQTT_USER = os.getenv("MQTT_USER", "user")
+        MQTT_USERNAME = os.getenv("MQTT_USERNAME", "user")
         MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "password")
 
         # Brightness configuration

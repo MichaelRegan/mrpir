@@ -71,7 +71,7 @@ def main(notifier, mqtt):
 if __name__ == "__main__":
     notifier = SystemdNotifier()
     notifier.notify("READY=1")
-    mqtt = MqttHelper(Config.MQTT_SERVER, Config.MQTT_PORT, Config.MQTT_USER, Config.MQTT_PASSWORD)
+    mqtt = MqttHelper(Config.MQTT_BROKER, Config.MQTT_PORT, Config.MQTT_USERNAME, Config.MQTT_PASSWORD)
 
     try:
         main(notifier, mqtt)
