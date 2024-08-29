@@ -20,7 +20,7 @@ class SensorMonitor:
         # Link motion detected and no motion detected events to callbacks
         self.sensor.when_motion = self.handle_motion
         self.sensor.when_no_motion = self.handle_no_motion
-        threading.Thread(target=self.monitor_sensor).start()
+        # threading.Thread(target=self.monitor_sensor).start()
 
     def handle_motion(self):
         self.motion_detected = True
@@ -35,9 +35,9 @@ class SensorMonitor:
             self.motion_detected = False
             self.on_no_motion()
 
-    def monitor_sensor(self):
-        while not self._stop_event.is_set():
-            time.sleep(0.1)  # Just to keep the thread alive
+    # def monitor_sensor(self):
+    #     while not self._stop_event.is_set():
+    #         time.sleep(0.1)  # Just to keep the thread alive
 
     def stop(self):
         self._stop_event.set()
