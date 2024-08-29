@@ -1,0 +1,30 @@
+import logging
+import logging.config
+import yaml
+import os
+
+def setup_logging(default_path='../config/log_config.yaml', default_level=logging.INFO):
+    # Adjust the path relative to the script's location
+    base_path = os.path.dirname(os.path.dirname(__file__))  # Go up one directory from utils
+    path = os.path.join(base_path, default_path)
+    
+    if os.path.exists(path):
+        with open(path, 'rt') as file:
+            try:
+                config = yaml.safe_load(file.read())
+                if config is not None:
+                    logging.config.dictConfig(config)
+                else:
+                    raise ValueError("Loaded YAML configuration is empty.")
+            except yaml.YAMLError as e:
+                print(f"Error parsing YAML file: {e}")
+                logging.basicConfig(level=default_level)
+            except Exception as e:
+                print(f"Error in logging configuration: {e}")
+                logging.basicConfig(level=default_level)
+    else:
+        print(f"Logging configuration file not found: {path}")
+        logging.basicConfig(level=default_level)
+
+logger = logging.getLogger(__name__)
+setup_logging()

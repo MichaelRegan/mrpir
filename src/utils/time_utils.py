@@ -1,0 +1,8 @@
+from datetime import datetime
+import pytz
+
+def is_after_sundown():
+    local_tz = pytz.timezone('America/Los_Angeles')  # Update to your timezone
+    sundown = local_tz.localize(datetime.now().replace(hour=18, minute=0, second=0, microsecond=0))
+    now = datetime.now(local_tz)
+    return now > sundown

@@ -1,0 +1,29 @@
+version: 1
+disable_existing_loggers: False
+
+formatters:
+  simple:
+    format: "%(message)s"  # Journal handles timestamps and metadata
+
+handlers:
+  journal:
+    class: systemd.journal.JournalHandler
+    level: INFO
+    formatter: simple
+
+  file:
+    class: logging.FileHandler
+    level: DEBUG
+    formatter: simple
+    filename: logs/mrpir.log
+    encoding: utf8
+
+loggers:
+  mrpir:
+    level: DEBUG
+    handlers: [journal, file]
+    propagate: no
+
+root:
+  level: DEBUG
+  handlers: [journal, file]

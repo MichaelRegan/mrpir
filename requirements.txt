@@ -1,5 +1,7 @@
-gpiozero==2.0.1
+paho-mqtt==1.6.1
 RPi.GPIO==0.7.1
-paho-mqtt==2.1.0
 sdnotify==0.3.2
-python-dotenv==1.0.1
+python-dotenv==1.0.0
+PyYAML==6.0
+pytz==2023.3
+gpiozero
