@@ -1,5 +1,4 @@
 import time
-import threading
 from config import config
 from utils.logger import logger
 from sensor_monitor import SensorMonitor
@@ -15,29 +14,27 @@ def on_no_motion():
     logger.info("No motion detected")
 
 def main():
-    stop_event = threading.Event()
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
     try:
         service_manager = ServiceManager(config)
         sensor_monitor = SensorMonitor(config, on_motion, on_no_motion)
         screen_control = ScreenControl(config, sensor_monitor)
         sundown_manager = SundownManager(config, screen_control)
-        mqtt_helper = MQTTHelper(config, sensor_monitor)
+        mqtt_helper = MQTTHelper(config, sensor_monitor)  # MQTTHelper is instantiated here
 
         service_manager.notify_startup()
 
         sensor_monitor.start()
         screen_control.start()
         sundown_manager.start()
-        mqtt_helper.start()
+        mqtt_helper.start()  # Start the MQTT client connection
 
-        while not stop_event.is_set():
+        while True:
             service_manager.notify_status("Running")
             time.sleep(60)
 
     except KeyboardInterrupt:
         logger.info("Shutting down service due to KeyboardInterrupt")
-        stop_event.set()
     finally:
         if sensor_monitor:
             sensor_monitor.stop()
