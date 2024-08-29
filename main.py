@@ -28,10 +28,12 @@ def main(notifier, mqtt):
     # Initialize the screen control
     screen_control = ScreenControl()
 
-    # Initialize MQTT
-    # mqtt = MqttHelper()
-
     mqtt.connect()
+
+    # Initialize as no motion detected and then wait for motion
+    logging.info("No motion detected.")
+    mqtt.publish(Config.STATE_TOPIC, "OFF")
+    screen_control.fade()
 
     notifier.notify("STATUS=Submitting configuration to MQTT for Home Assistant...")
     # mqtt.publish_config()
