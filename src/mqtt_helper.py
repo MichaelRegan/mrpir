@@ -11,12 +11,12 @@ class MQTTHelper:
         self.client.on_log = self.on_log  # Enable logging for the MQTT client
         self.last_sent_state = None  # Track the last state sent to Home Assistant
 
-        if self.config.mqtt_username and self.config.mqtt_password:
-            self.client.username_pw_set(self.config.mqtt_username, self.config.mqtt_password)
+        if self.config.username and self.config.password:
+            self.client.username_pw_set(self.config.username, self.config.password)
 
         # Register the callbacks for motion detection and no motion
-        self.sensor_monitor.sensor.when_motion = self.handle_motion
-        self.sensor_monitor.sensor.when_no_motion = self.handle_no_motion
+        if self.config.username and self.config.password:
+            self.client.username_pw_set(self.config.username, self.config.password)
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
@@ -45,7 +45,7 @@ class MQTTHelper:
 
     def start(self):
         try:
-            self.client.connect(self.config.mqtt_host, self.config.mqtt_port, 60)
+            self.client.connect(self.config.host, self.config.port, 60)
             self.client.loop_start()
         except Exception as e:
             logger.error(f"MQTT connection error: {e}")

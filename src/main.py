@@ -1,5 +1,5 @@
 import time
-from config import config
+from config import config, MQTTConfig, TimeoutConfig
 from utils.logger import logger
 from sensor_monitor import SensorMonitor
 from screen_control import ScreenControl
@@ -16,11 +16,11 @@ def on_no_motion():
 def main():
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
     try:
-        service_manager = ServiceManager(config)
-        sensor_monitor = SensorMonitor(config, on_motion, on_no_motion)
-        screen_control = ScreenControl(config, sensor_monitor)
+        service_manager = ServiceManager(None)
+        sensor_monitor = SensorMonitor(config.sensor, on_motion, on_no_motion)
+        screen_control = ScreenControl(config.display, sensor_monitor)
         sundown_manager = SundownManager(config, screen_control)
-        mqtt_helper = MQTTHelper(config, sensor_monitor)  # MQTTHelper is instantiated here
+        mqtt_helper = MQTTHelper(config.mqtt, sensor_monitor)  # MQTTHelper is instantiated here
 
         service_manager.notify_startup()
 
@@ -31,7 +31,7 @@ def main():
 
         while True:
             service_manager.notify_status("Running")
-            time.sleep(60)
+            time.sleep(30)
 
     except KeyboardInterrupt:
         logger.info("Shutting down service due to KeyboardInterrupt")
