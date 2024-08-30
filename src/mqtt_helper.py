@@ -2,21 +2,17 @@ import paho.mqtt.client as mqtt
 from utils.logger import logger
 
 class MQTTHelper:
-    def __init__(self, config, sensor_monitor):
+    def __init__(self, config):
         self.config = config
-        self.sensor_monitor = sensor_monitor
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_log = self.on_log  # Enable logging for the MQTT client
+        self.client.client_id = "pir_officescreen_id"
         self.last_sent_state = None  # Track the last state sent to Home Assistant
 
         if self.config.mqtt_username and self.config.mqtt_password:
             self.client.username_pw_set(self.config.mqtt_username, self.config.mqtt_password)
-
-        # Register the callbacks for motion detection and no motion
-        self.sensor_monitor.sensor.when_motion = self.handle_motion
-        self.sensor_monitor.sensor.when_no_motion = self.handle_no_motion
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
@@ -31,9 +27,11 @@ class MQTTHelper:
         logger.debug(f"MQTT Log: {buf}")
 
     def handle_motion(self):
+        logger.debug("MQTTHelper: Motion detected, publishing state ON.")
         self.publish_state("ON")
 
     def handle_no_motion(self):
+        logger.debug("MQTTHelper: No motion detected, publishing state OFF.")
         self.publish_state("OFF")
 
     def publish_state(self, state):

@@ -13,14 +13,14 @@ handlers:
 
   file:
     class: logging.FileHandler
-    level: DEBUG
+    level: INFO
     formatter: simple
     filename: logs/mrpir.log
     encoding: utf8
 
 loggers:
   mrpir:
-    level: DEBUG
+    level: INFO
     handlers: [journal, file]
     propagate: no
 
