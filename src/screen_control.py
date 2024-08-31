@@ -2,9 +2,6 @@ import time
 import os
 from utils.logger import logger
 
-# In Set screen brightness to /sys/class/backlight/10-0045/brightness from 0
-# Error setting brightness: [Errno 22] Invalid argument
-
 class ScreenControl:
     def __init__(self, config):
         self.config = config

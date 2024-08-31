@@ -5,16 +5,6 @@ from utils.logger import logger
 from gpiozero import MotionSensor
 
 class SensorMonitor:
-    # def __init__(self, config, on_motion, on_no_motion):
-    #     self.config = config
-    #     self.on_motion = on_motion
-    #     self.on_no_motion = on_no_motion
-    #     self.motion_detected = False
-    #     self.last_motion_time = time.time() - self.config.no_motion_timeout
-    #     self._stop_event = threading.Event()
-
-    #     # Initialize the MotionSensor using gpiozero
-    #     self.sensor = MotionSensor(config.gpio_pin)
 
     def __init__(self, config):
         self.callbacks: Dict[str, List[Callable]] = {
@@ -22,8 +12,6 @@ class SensorMonitor:
             "on_no_motion": []
         }
         self.config = config
-        # self.on_motion = on_motion
-        # self.on_no_motion = on_no_motion
         self.motion_detected = False
         self.last_motion_time = time.time() - self.config.no_motion_timeout
         self._stop_event = threading.Event()
