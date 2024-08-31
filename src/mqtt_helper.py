@@ -28,11 +28,13 @@ class MQTTHelper:
 
     def on_motion(self) -> None:
         logger.debug("MQTTHelper: Motion detected, publishing state ON.")
-        self.publish_state("ON")
+        if self.last_sent_state != "ON":
+            self.publish_state("ON")
 
     def on_no_motion(self) -> None:
         logger.debug("MQTTHelper: No motion detected, publishing state OFF.")
-        self.publish_state("OFF")
+        if self.last_sent_state != "OFF":
+            self.publish_state("OFF")
 
     def publish_state(self, state):
         # Only send an update if the state has changed
