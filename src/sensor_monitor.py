@@ -1,7 +1,8 @@
-from gpiozero import MotionSensor
+from typing import Callable, Dict, List
 import threading
 import time
 from utils.logger import logger
+from gpiozero import MotionSensor
 
 class SensorMonitor:
     # def __init__(self, config, on_motion, on_no_motion):
@@ -16,12 +17,13 @@ class SensorMonitor:
     #     self.sensor = MotionSensor(config.gpio_pin)
 
     def __init__(self, config):
-        self.callbacks = {
+        self.callbacks: Dict[str, List[Callable]] = {
             "on_motion": [],
             "on_no_motion": []
         }
         self.config = config
-        self.on_no_motion = None
+        # self.on_motion = on_motion
+        # self.on_no_motion = on_no_motion
         self.motion_detected = False
         self.last_motion_time = time.time() - self.config.no_motion_timeout
         self._stop_event = threading.Event()
@@ -39,12 +41,12 @@ class SensorMonitor:
         try:
             # Link motion detected and no motion detected events to callbacks
             logger.debug("SensorMonitor started and awaiting events.")
-            self.sensor.when_motion = self.handle_motion
-            self.sensor.when_no_motion = self.handle_no_motion
+            self.sensor.when_motion = self.on_motion
+            self.sensor.when_no_motion = self.on_no_motion
         except Exception as e:
             logger.error(f"Error in start: {e}")
 
-    def handle_motion(self):
+    def on_motion(self):
         try:
             self.motion_detected = True
             self.last_motion_time = time.time()
@@ -53,9 +55,9 @@ class SensorMonitor:
                 for callback in self.callbacks["on_motion"]:
                     callback()
         except Exception as e:
-            logger.error(f"Error in handle_motion: {e}")
+            logger.error(f"Error in on_motion: {e}")
     
-    def handle_no_motion(self):
+    def on_no_motion(self):
         try:
             logger.debug("MotionSensor: No motion detected")
             time.sleep(self.config.no_motion_timeout) # why not use self.config.no_motion_timeout test?
@@ -68,7 +70,7 @@ class SensorMonitor:
                     logger.debug("MotionSensor: callback()")
                     callback()
         except Exception as e:
-            logger.error(f"Error in handle_no_motion: {e}")
+            logger.error(f"Error in on_no_motion: {e}")
 
     def stop(self):
         self._stop_event.set()

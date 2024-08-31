@@ -14,7 +14,7 @@ class SundownManager:
 
     def manage_screen_after_sundown(self):
         while not self._stop_event.is_set():
-            if is_after_sundown() and not self.screen_control.sensor_monitor.motion_detected:
+            if is_after_sundown(self.config.time_zone) and not self.screen_control.sensor_monitor.motion_detected:
                 time_since_motion = time.time() - self.screen_control.sensor_monitor.last_motion_time
                 if time_since_motion > self.config.sundown_timeout:
                     self.screen_control.set_brightness(0)

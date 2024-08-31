@@ -8,31 +8,21 @@ from sundown_manager import SundownManager
 from mqtt_helper import MQTTHelper
 from service_manager import ServiceManager
 
-# def on_motion():
-#     logger.info("Motion detected")
-#     ScreenControl.handle_motion()
-#     MQTTHelper.handle_motion()
-
-# def on_no_motion():
-#     logger.info("No motion detected")
-#     ScreenControl.handle_no_motion()
-#     MQTTHelper.handle_no_motion()
-
 def main():
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
     try:
         service_manager = ServiceManager(config)
         sensor_monitor = SensorMonitor(config) #, on_motion, on_no_motion)
-        screen_control = ScreenControl(config, sensor_monitor)
+        screen_control = ScreenControl(config)
         # sundown_manager = SundownManager(config, screen_control)
         mqtt_helper = MQTTHelper(config)  # MQTTHelper is instantiated here
 
         service_manager.notify_startup()
 
-        sensor_monitor.register_callback("on_motion", screen_control.handle_motion)
-        sensor_monitor.register_callback("on_motion", mqtt_helper.handle_motion)
-        sensor_monitor.register_callback("on_no_motion", screen_control.handle_no_motion)
-        sensor_monitor.register_callback("on_no_motion", mqtt_helper.handle_no_motion)
+        sensor_monitor.register_callback("on_motion", screen_control.on_motion)
+        sensor_monitor.register_callback("on_motion", mqtt_helper.on_motion)
+        sensor_monitor.register_callback("on_no_motion", screen_control.on_no_motion)
+        sensor_monitor.register_callback("on_no_motion", mqtt_helper.on_no_motion)
 
         sensor_monitor.start()
         screen_control.start()
@@ -40,7 +30,7 @@ def main():
         mqtt_helper.start()  # Start the MQTT client connection
 
         # Default to no motion detected
-        sensor_monitor.handle_no_motion()
+        sensor_monitor.on_no_motion()
 
         while True:
             # asyncio.get_event_loop().run_forever()

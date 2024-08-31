@@ -26,11 +26,11 @@ class MQTTHelper:
     def on_log(self, client, userdata, level, buf):
         logger.debug(f"MQTT Log: {buf}")
 
-    def handle_motion(self):
+    def on_motion(self) -> None:
         logger.debug("MQTTHelper: Motion detected, publishing state ON.")
         self.publish_state("ON")
 
-    def handle_no_motion(self):
+    def on_no_motion(self) -> None:
         logger.debug("MQTTHelper: No motion detected, publishing state OFF.")
         self.publish_state("OFF")
 

@@ -8,7 +8,7 @@ class Config:
         self.dim_brightness = int(os.getenv('DIM_BRIGHTNESS', '0'))
         self.bright_brightness = int(os.getenv('BRIGHT_BRIGHTNESS', '90'))
         self.transition_time = int(os.getenv('TRANSITION_TIME', '30'))
-        self.dim_delay = int(os.getenv('DIM_DELAY', '30'))
+        self.time_zone = os.getenv('TIME_ZONE', 'America/Los_Angeles')
         self.no_motion_timeout = int(os.getenv('NO_MOTION_TIMEOUT', '60'))
         self.sundown_timeout = int(os.getenv('SUNDOWN_TIMEOUT', '3600'))
         self.mqtt_device = os.getenv('MQTT_DEVICE', 'mrpir')

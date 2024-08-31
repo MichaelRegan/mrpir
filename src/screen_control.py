@@ -6,22 +6,26 @@ from utils.logger import logger
 # Error setting brightness: [Errno 22] Invalid argument
 
 class ScreenControl:
-    def __init__(self, config, sensor_monitor):
+    def __init__(self, config):
         self.config = config
-        self.sensor_monitor = sensor_monitor
-        self.current_brightness = self.config.bright_brightness
+        self.current_brightness = self.current_brightness = self.get_current_brightness()
 
-    def handle_motion(self):
+    def get_current_brightness(self):
+        try:
+            with open(self.config.brightness_path, 'r') as f:
+                brightness = int(f.read().strip())
+                logger.debug(f"Current brightness read from {self.config.brightness_path}: {brightness}")
+                return brightness
+        except Exception as e:
+            logger.error(f"Error reading current brightness: {e}")
+            return self.config.bright_brightness  # Default to bright brightness if reading fails
+
+    def on_motion(self) -> None:
         logger.debug(f"Motion detected, setting brightness to bright level. {self.config.bright_brightness}")
         self.set_brightness(self.config.bright_brightness)
 
-    def handle_no_motion(self):
-        logger.debug(f"No motion detected, will dim the screen after {self.config.dim_delay} seconds.")
-        # Delay the dimming to respect the configured dim delay
-        time.sleep(self.config.dim_delay)
-        # Double-check that motion hasn't been detected again during the delay
-        if not self.sensor_monitor.motion_detected:
-            self.set_brightness(self.config.dim_brightness)
+    def on_no_motion(self) -> None:
+        self.set_brightness(self.config.dim_brightness)
 
     def set_brightness(self, value):
         logger.debug(f"In Set screen brightness to {value} from {self.current_brightness}")
@@ -35,7 +39,7 @@ class ScreenControl:
             logger.error(f"Error setting brightness: {e}")
 
     def start(self):
-        self.current_brightness = 0
+        self.current_brightness = self.get_current_brightness()
         self.set_brightness(self.config.bright_brightness)
         logger.info("ScreenControl started and awaiting events.")
 
