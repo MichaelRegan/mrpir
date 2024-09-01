@@ -78,7 +78,7 @@ class ScreenControl:
             self.motion_detected = False
             self.set_brightness(self.config.dim_brightness)
 
-            if is_after_sundown(self.config.time_zone):
+            if is_after_sundown(self.config.timezone):
                 if self.last_motion_time:
                     time_since_last_motion = datetime.now() - self.last_motion_time
                     logger.debug("Time since last motion: %s", time_since_last_motion)
@@ -92,7 +92,7 @@ class ScreenControl:
                     logger.debug("No motion has been detected yet.")
         else:
             # Already in 'no motion' state, check if the screen should be turned off at night
-            if is_after_sundown(self.config.time_zone):
+            if is_after_sundown(self.config.timezone):
                 if self.last_motion_time:
                     time_since_last_motion = datetime.now() - self.last_motion_time
                     logger.debug("Time since last motion: %s", time_since_last_motion)
@@ -121,14 +121,14 @@ class ScreenControl:
         except OSError as err:
             logger.error(f"Error setting brightness: {err}")
 
-    def is_night_time(self) -> bool:
-        """
-        Determines if it is currently nighttime based on the configured time zone.
+    # def is_night_time(self) -> bool:
+    #     """
+    #     Determines if it is currently nighttime based on the configured time zone.
 
-        Returns:
-            bool: True if it is after sundown, False otherwise.
-        """
-        return is_after_sundown(self.config.time_zone)
+    #     Returns:
+    #         bool: True if it is after sundown, False otherwise.
+    #     """
+    #     return is_after_sundown(self.config.timezone)
 
     def turn_off_screen(self) -> None:
         """

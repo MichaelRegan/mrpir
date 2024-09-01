@@ -29,8 +29,8 @@ class MQTTHelper:
         self.last_sent_state = None  # Track the last state sent to Home Assistant
 
         # Set MQTT username and password if provided in the configuration
-        if self.config.mqtt_username and self.config.mqtt_password:
-            self.client.username_pw_set(self.config.mqtt_username, self.config.mqtt_password)
+        if self.config.username and self.config.password:
+            self.client.username_pw_set(self.config.username, self.config.password)
 
     def on_connect(self, _client, _userdata, _flags, return_code):
         """
@@ -103,10 +103,10 @@ class MQTTHelper:
         Starts the MQTT client and connects to the broker.
         """
         try:
-            self.client.connect(self.config.mqtt_host, self.config.mqtt_port, 60)
+            self.client.connect(self.config.host, self.config.port, 60)
             self.client.loop_start()
-        except mqtt.MQTTException as error:
-            logger.error(f"MQTT-specific error: {error}")
+        # except mqtt.MQTTException as error:
+        #     logger.error(f"MQTT-specific error: {error}")
         except socket.error as error:
             logger.error(f"Network-related error: {error}")
 

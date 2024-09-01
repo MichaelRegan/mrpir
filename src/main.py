@@ -22,9 +22,9 @@ def main():
     try:
         # config = config()
         service_manager = ServiceManager(config)
-        sensor_monitor = SensorMonitor(config)
-        screen_control = ScreenControl(config)
-        mqtt_helper = MQTTHelper(config)
+        sensor_monitor = SensorMonitor(config.sensor)
+        screen_control = ScreenControl(config.display)
+        mqtt_helper = MQTTHelper(config.mqtt)
 
         service_manager.notify_startup()
 
