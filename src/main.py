@@ -5,7 +5,6 @@ from config import config
 from utils.logger import logger
 from sensor_monitor import SensorMonitor
 from screen_control import ScreenControl
-from sundown_manager import SundownManager
 from mqtt_helper import MQTTHelper
 from service_manager import ServiceManager
 from utils.time_utils import is_after_sundown
@@ -17,7 +16,6 @@ def main():
         service_manager = ServiceManager(config)
         sensor_monitor = SensorMonitor(config) #, on_motion, on_no_motion)
         screen_control = ScreenControl(config)
-        # sundown_manager = SundownManager(config, screen_control)
         mqtt_helper = MQTTHelper(config)  # MQTTHelper is instantiated here
 
         service_manager.notify_startup()

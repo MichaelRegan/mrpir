@@ -3,11 +3,20 @@ import logging.config
 import yaml
 import os
 
-def setup_logging(default_path='../config/log_config.yaml', default_level=logging.INFO):
+
+def setup_logging(default_path: str = '../config/log_config.yaml', default_level: int = logging.INFO) -> None:
+    """
+    Sets up logging configuration from a YAML file. If the file is not found or
+    there's an error in the configuration, it falls back to a basic logging configuration.
+
+    Args:
+        default_path (str): The default path to the logging configuration YAML file.
+        default_level (int): The default logging level to use if the configuration file is not found or invalid.
+    """
     # Adjust the path relative to the script's location
     base_path = os.path.dirname(os.path.dirname(__file__))  # Go up one directory from utils
     path = os.path.join(base_path, default_path)
-    
+
     if os.path.exists(path):
         with open(path, 'rt') as file:
             try:
@@ -26,5 +35,7 @@ def setup_logging(default_path='../config/log_config.yaml', default_level=loggin
         print(f"Logging configuration file not found: {path}")
         logging.basicConfig(level=default_level)
 
+
+# Initialize the logger and set up logging configuration
 logger = logging.getLogger(__name__)
 setup_logging()
