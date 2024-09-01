@@ -101,7 +101,7 @@ class Config:
         )
 
         # GPIO settings
-        self.gpio_pin = int(os.getenv('GPIO_PIN', '23'))
+        # self.gpio_pin = int(os.getenv('GPIO_PIN', '23'))
 
 # Instantiate the Config class to be used throughout the application
 config = Config()
