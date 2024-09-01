@@ -5,7 +5,7 @@ Screen Control module for managing screen brightness and state.
 import subprocess
 from datetime import datetime, timedelta
 from utils.logger import logger  # pylint: disable=import-error
-from utils.time_utils import is_after_sundown
+from utils.time_utils import is_after_sundown # pylint: disable=import-error
 
 
 class ScreenControl:
@@ -43,7 +43,7 @@ class ScreenControl:
         try:
             with open(self.config.brightness_path, 'r', encoding='utf-8') as f:
                 brightness = int(f.read().strip())
-                logger.debug("Current brightness read from %s: %d", 
+                logger.debug("Current brightness read from %s: %d",
                              self.config.brightness_path, brightness)
                 return brightness
         except FileNotFoundError as e:
@@ -63,14 +63,15 @@ class ScreenControl:
 
         self.motion_detected = True
         self.last_motion_time = datetime.now()
-        logger.debug("Motion detected, setting brightness to bright level: %d", 
+        logger.debug("Motion detected, setting brightness to bright level: %d",
                      self.config.bright_brightness)
         self.set_brightness(self.config.bright_brightness)
 
     def on_no_motion(self) -> None:
         """
         Handles the event when no motion is detected.
-        Dims the screen and may turn it off after sundown if no motion is detected for a specified duration.
+        Dims the screen and may turn it off after sundown 
+        if no motion is detected for a specified duration.
         """
         if self.motion_detected:
             # Transitioning from motion detected to no motion detected
@@ -83,8 +84,9 @@ class ScreenControl:
                     logger.debug("Time since last motion: %s", time_since_last_motion)
 
                     if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
-                        logger.debug("No motion detected for %d seconds after sundown. Turning off the screen.",
-                                     self.config.screen_off_delay)
+                        logger.debug(
+                            "No motion detected for %d seconds after sundown. Turning off the screen.",
+                            self.config.screen_off_delay)
                         self.turn_off_screen()
                 else:
                     logger.debug("No motion has been detected yet.")
@@ -96,8 +98,9 @@ class ScreenControl:
                     logger.debug("Time since last motion: %s", time_since_last_motion)
 
                     if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
-                        logger.debug("No motion detected for %d seconds after sundown. Turning off the screen.",
-                                     self.config.screen_off_delay)
+                        logger.debug(
+                            "No motion detected for %d seconds after sundown. Turning off the screen.",
+                            self.config.screen_off_delay)
                         if not self.is_screen_off():
                             self.turn_off_screen()
 
