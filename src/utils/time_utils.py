@@ -1,3 +1,7 @@
+"""
+Date and time utility functions.
+"""
+
 from datetime import datetime, timedelta
 import pytz # pylint: disable=import-error
 

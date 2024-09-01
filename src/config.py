@@ -1,5 +1,9 @@
+"""
+Loads and stores configuration settings from environment variables.
+Provides default values for settings if not specified in the environment.
+"""
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # pylint: disable=import-error
 
 
 class Config:

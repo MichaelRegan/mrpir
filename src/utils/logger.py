@@ -9,7 +9,7 @@ import logging.config
 import yaml  # pylint: disable=import-error
 
 
-def setup_logging(default_path: str = '../config/log_config.yaml', 
+def setup_logging(default_path: str = '../config/log_config.yaml',
                   default_level: int = logging.INFO) -> None:
     """
     Sets up logging configuration from a YAML file. If the file is not found or

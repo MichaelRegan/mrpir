@@ -6,11 +6,11 @@ import time
 from datetime import datetime, timedelta
 from config import config
 from utils.logger import logger  # pylint: disable=import-error
-from sensor_monitor import SensorMonitor
-from screen_control import ScreenControl
-from mqtt_helper import MQTTHelper
-from service_manager import ServiceManager
-from utils.time_utils import is_after_sundown
+from sensor_monitor import SensorMonitor # pylint: disable=import-error
+from screen_control import ScreenControl # pylint: disable=import-error
+from mqtt_helper import MQTTHelper # pylint: disable=import-error
+from service_manager import ServiceManager # pylint: disable=import-error
+from utils.time_utils import is_after_sundown # pylint: disable=import-error
 
 def main():
     """
@@ -20,7 +20,7 @@ def main():
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
     last_called = datetime.now()
     try:
-        config = config()
+        # config = config()
         service_manager = ServiceManager(config)
         sensor_monitor = SensorMonitor(config)
         screen_control = ScreenControl(config)

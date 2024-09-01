@@ -2,7 +2,8 @@
 MQTT Helper module for handling MQTT connections and events.
 """
 
-import paho.mqtt.client as mqtt
+import socket
+import paho.mqtt.client as mqtt  # pylint: disable=import-error
 from utils.logger import logger  # pylint: disable=import-error
 
 
@@ -10,11 +11,6 @@ class MQTTHelper:
     """
     Helper class to manage MQTT communication, including connecting to the broker,
     handling motion detection events, and publishing states to Home Assistant.
-
-    Attributes:
-        config (dict): Configuration settings for the MQTT client.
-        client (mqtt.Client): The MQTT client instance.
-        last_sent_state (str): The last state sent to Home Assistant.
     """
 
     def __init__(self, config):
@@ -109,8 +105,12 @@ class MQTTHelper:
         try:
             self.client.connect(self.config.mqtt_host, self.config.mqtt_port, 60)
             self.client.loop_start()
+        except mqtt.MQTTException as e:
+            logger.error(f"MQTT-specific error: {e}")
+        except socket.error as e:
+            logger.error(f"Network-related error: {e}")
         except Exception as e:
-            logger.error(f"MQTT connection error: {e}")
+            logger.error(f"General error in MQTT connection: {e}")
 
     def stop(self) -> None:
         """

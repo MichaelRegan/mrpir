@@ -43,10 +43,14 @@ class ScreenControl:
         try:
             with open(self.config.brightness_path, 'r', encoding='utf-8') as f:
                 brightness = int(f.read().strip())
-                logger.debug(f"Current brightness read from {self.config.brightness_path}: {brightness}")
+                logger.debug("Current brightness read from %s: %d", 
+                             self.config.brightness_path, brightness)
                 return brightness
-        except Exception as e:
-            logger.error(f"Error reading current brightness: {e}")
+        except FileNotFoundError as e:
+            logger.error(f"Brightness file not found: {e}")
+            return self.config.bright_brightness  # Default to bright brightness if reading fails
+        except ValueError as e:
+            logger.error(f"Error parsing brightness value: {e}")
             return self.config.bright_brightness  # Default to bright brightness if reading fails
 
     def on_motion(self) -> None:
@@ -59,7 +63,8 @@ class ScreenControl:
 
         self.motion_detected = True
         self.last_motion_time = datetime.now()
-        logger.debug(f"Motion detected, setting brightness to bright level: {self.config.bright_brightness}")
+        logger.debug("Motion detected, setting brightness to bright level: %d", 
+                     self.config.bright_brightness)
         self.set_brightness(self.config.bright_brightness)
 
     def on_no_motion(self) -> None:
@@ -75,22 +80,24 @@ class ScreenControl:
             if is_after_sundown(self.config.time_zone):
                 if self.last_motion_time:
                     time_since_last_motion = datetime.now() - self.last_motion_time
-                    logger.debug(f"Time since last motion: {time_since_last_motion}")
+                    logger.debug("Time since last motion: %s", time_since_last_motion)
 
                     if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
-                        logger.debug(f"No motion detected for {self.config.screen_off_delay} seconds after sundown. Turning off the screen.")
+                        logger.debug("No motion detected for %d seconds after sundown. Turning off the screen.",
+                                     self.config.screen_off_delay)
                         self.turn_off_screen()
                 else:
-                    logger.debug(f"No motion has been detected yet.")
+                    logger.debug("No motion has been detected yet.")
         else:
             # Already in 'no motion' state, check if the screen should be turned off at night
             if is_after_sundown(self.config.time_zone):
                 if self.last_motion_time:
                     time_since_last_motion = datetime.now() - self.last_motion_time
-                    logger.debug(f"Time since last motion: {time_since_last_motion}")
+                    logger.debug("Time since last motion: %s", time_since_last_motion)
 
                     if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
-                        logger.debug(f"No motion detected for {self.config.screen_off_delay} seconds after sundown. Turning off the screen.")
+                        logger.debug("No motion detected for %d seconds after sundown. Turning off the screen.",
+                                     self.config.screen_off_delay)
                         if not self.is_screen_off():
                             self.turn_off_screen()
 
@@ -101,14 +108,14 @@ class ScreenControl:
         Args:
             value (int): The brightness level to set.
         """
-        logger.debug(f"Setting screen brightness to {value} from {self.current_brightness}")
+        logger.debug("Setting screen brightness to %d from %d", value, self.current_brightness)
         try:
             if value != self.current_brightness:
                 with open(self.config.brightness_path, 'w', encoding='utf-8') as f:
                     f.write(str(value))
                 self.current_brightness = value
-                logger.debug(f"Screen brightness set to {value}")
-        except Exception as e:
+                logger.debug("Screen brightness set to %d", value)
+        except OSError as e:
             logger.error(f"Error setting brightness: {e}")
 
     def is_night_time(self) -> bool:
@@ -128,7 +135,7 @@ class ScreenControl:
             logger.info("Turning off the screen.")
             subprocess.run(['wlr-randr', '--output', 'DSI-1', '--off'], check=True)
             self.current_brightness = 0
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Error turning off the screen: {e}")
 
     def is_screen_off(self) -> bool:
@@ -140,7 +147,7 @@ class ScreenControl:
         """
         try:
             logger.info("Checking screen status.")
-            result = subprocess.run(['wlr-randr'], stdout=subprocess.PIPE, text=True)
+            result = subprocess.run(['wlr-randr'], stdout=subprocess.PIPE, text=True, check=True)
             if 'DSI-1' in result.stdout:
                 for line in result.stdout.splitlines():
                     if 'DSI-1' in line and 'disabled' in line:
@@ -148,7 +155,7 @@ class ScreenControl:
                         return True
             logger.info("Screen is on.")
             return False
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Error checking screen status: {e}")
             return False
 
