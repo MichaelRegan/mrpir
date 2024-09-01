@@ -32,7 +32,7 @@ class MQTTHelper:
         if self.config.mqtt_username and self.config.mqtt_password:
             self.client.username_pw_set(self.config.mqtt_username, self.config.mqtt_password)
 
-    def on_connect(self, _client, _userdata, _flags, rc):
+    def on_connect(self, _client, _userdata, _flags, return_code):
         """
         Callback for when the client connects to the MQTT broker.
 
@@ -42,12 +42,12 @@ class MQTTHelper:
             flags (dict): Response flags sent by the broker.
             rc (int): The connection result.
         """
-        if rc == 0:
+        if return_code == 0:
             logger.info("Connected to MQTT broker")
         else:
-            logger.error(f"Failed to connect to MQTT broker, return code {rc}")
+            logger.error(f"Failed to connect to MQTT broker, return code {return_code}")
 
-    def on_disconnect(self, _client, _userdata, _rc):
+    def on_disconnect(self, _client, _userdata, _return_code):
         """
         Callback for when the client disconnects from the MQTT broker.
 
@@ -105,12 +105,10 @@ class MQTTHelper:
         try:
             self.client.connect(self.config.mqtt_host, self.config.mqtt_port, 60)
             self.client.loop_start()
-        except mqtt.MQTTException as e:
-            logger.error(f"MQTT-specific error: {e}")
-        except socket.error as e:
-            logger.error(f"Network-related error: {e}")
-        except Exception as e:
-            logger.error(f"General error in MQTT connection: {e}")
+        except mqtt.MQTTException as error:
+            logger.error(f"MQTT-specific error: {error}")
+        except socket.error as error:
+            logger.error(f"Network-related error: {error}")
 
     def stop(self) -> None:
         """
