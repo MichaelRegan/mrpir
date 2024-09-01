@@ -9,8 +9,8 @@ Description: This module monitors a motion sensor using the gpiozero library and
 from typing import Callable, Dict, List
 import threading
 import time
-import gpiozero
-from gpiozero import MotionSensor
+import gpiozero # pylint: disable=import-error
+from gpiozero import MotionSensor # pylint: disable=import-error
 from utils.logger import logger  # pylint: disable=import-error
 
 
@@ -73,8 +73,6 @@ class SensorMonitor:
             self.sensor.when_no_motion = self.on_no_motion
         except gpiozero.GPIOZeroError as e:
             logger.error(f"GPIOZero error in start: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error in start: {e}")
 
     def on_motion(self) -> None:
         """
@@ -106,7 +104,8 @@ class SensorMonitor:
 
     def update_sensor(self) -> None:
         """
-        Manually updates the sensor state, triggering the appropriate callbacks based on the current state.
+        Manually updates the sensor state, triggering the appropriate 
+        callbacks based on the current state.
         """
         try:
             if self.sensor.motion_detected:

@@ -5,11 +5,11 @@ Main module for the application.
 import time
 from datetime import datetime, timedelta
 from config import config
-from utils.logger import logger  # pylint: disable=import-error
 from sensor_monitor import SensorMonitor # pylint: disable=import-error
 from screen_control import ScreenControl # pylint: disable=import-error
 from mqtt_helper import MQTTHelper # pylint: disable=import-error
 from service_manager import ServiceManager # pylint: disable=import-error
+from utils.logger import logger  # pylint: disable=import-error
 from utils.time_utils import is_after_sundown # pylint: disable=import-error
 
 def main():

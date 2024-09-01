@@ -85,7 +85,7 @@ class ScreenControl:
 
                     if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
                         logger.debug(
-                            "No motion detected for %d seconds after sundown. Turning off the screen.",
+                            "No motion detected for %d seconds after sundown.",
                             self.config.screen_off_delay)
                         self.turn_off_screen()
                 else:
@@ -99,7 +99,7 @@ class ScreenControl:
 
                     if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
                         logger.debug(
-                            "No motion detected for %d seconds after sundown. Turning off the screen.",
+                            "No motion detected for %d seconds after sundown.",
                             self.config.screen_off_delay)
                         if not self.is_screen_off():
                             self.turn_off_screen()
