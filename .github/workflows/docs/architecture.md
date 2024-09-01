@@ -34,9 +34,43 @@ The `mrpir` application is composed of several key modules, each with distinct r
    - Uses dependency injection to provide configuration data to other modules.
 
 2. **`SensorMonitor` (sensor_monitor.py)**
-   - Monitors the PIR motion sensor for changes in motion state (i.e., motion detected or no motion).
-   - Uses a configurable timeout to determine when to signal that no motion has been detected.
-   - Registers callbacks for motion and no-motion events, triggering appropriate actions in other modules like `ScreenControl` and `MQTTHelper`.
+
+      **Overview:**
+      The `SensorMonitor` class is responsible for monitoring a PIR motion sensor using the `gpiozero` library. It detects motion and no-motion events, triggering registered callbacks for each event. The class is designed to be robust, with error handling for sensor-related issues and a flexible interface for callback registration.
+
+   ***Key Responsibilities:***
+   - **Motion Detection:** Monitors the PIR motion sensor and detects motion events.
+   - **No Motion Detection:** Identifies when no motion has been detected after a configurable timeout period.
+   - **Callback Management:** Allows other components to register callbacks for `on_motion` and `on_no_motion` events.
+   - **Manual State Update:** Provides a method to manually check and update the sensor state, ensuring that the application can handle unexpected changes or recheck the sensor state.
+   - **Start/Stop Sensor Monitoring:** Provides methods to start and stop monitoring, which are important for resource management and controlled shutdown.
+
+   **Attributes:**
+   - **`config` (dict):** Holds configuration settings for the sensor monitor, including the GPIO pin and motion timeout values.
+   - **`callbacks` (Dict[str, List[Callable]]):** Stores the lists of callback functions for `on_motion` and `on_no_motion` events.
+   - **`motion_detected` (bool):** Tracks whether motion is currently detected.
+   - **`last_motion_time` (float):** Records the timestamp of the last detected motion, used to determine if the no-motion timeout has been reached.
+   - **`_stop_event` (threading.Event):** A threading event to signal when the sensor monitoring should stop.
+   - **`sensor` (MotionSensor):** The motion sensor instance initialized from the `gpiozero` library.
+
+   **Methods:**
+   - **`__init__(self, config)`:** Initializes the `SensorMonitor` with the provided configuration. It sets up the motion sensor and prepares for monitoring.
+   - **`register_callback(self, key: str, callback: Callable) -> None`:** Registers a callback for the specified event key (`on_motion` or `on_no_motion`).
+   - **`start(self) -> None`:** Starts the sensor monitoring by linking sensor events to the appropriate callbacks.
+   - **`on_motion(self) -> None`:** Handles the motion detected event, setting the internal state and triggering registered `on_motion` callbacks.
+   - **`on_no_motion(self) -> None`:** Handles the no-motion detected event, updating the state and triggering registered `on_no_motion` callbacks.
+   - **`update_sensor(self) -> None`:** Manually updates the sensor state, rechecking for motion and triggering the appropriate callbacks.
+   - **`stop(self) -> None`:** Stops the sensor monitoring, closing the sensor and freeing resources.
+
+   **Error Handling:**
+   - The class includes error handling for operations related to the `gpiozero` library. Errors are logged, and in cases where the sensor fails to initialize or operate correctly, the system can raise an exception or enter a safe state.
+
+   **Usage in the Application:**
+   - The `SensorMonitor` integrates with the `ScreenControl` and `MQTTHelper` classes, triggering actions like adjusting screen brightness or notifying Home Assistant based on motion events. The class’s ability to register callbacks makes it flexible and easily extendable.
+
+   **Test Considerations:**
+   - Testing should include scenarios for motion detection, no-motion detection, callback invocation, error handling, and the start/stop functionality. Mocking the `gpiozero` library will be essential for isolating sensor behavior in unit tests.
+
 
 3. **`ScreenControl` (screen_control.py)**
    - Adjusts the brightness of the Raspberry Pi touchscreen based on motion detection.
@@ -57,7 +91,7 @@ The `mrpir` application is composed of several key modules, each with distinct r
 ### **3. Component Interactions**
 The components in the `mrpir` application interact with each other and external systems as follows:
 
-- **Sensor Interaction**: The `SensorMonitor` continuously monitors the PIR motion sensor. When motion is detected, it notifies the `ScreenControl` and `MQTTHelper` modules. If no motion is detected for the configured timeout period, it triggers the `ScreenControl` to dim the screen and updates Home Assistant through `MQTTHelper`.
+- **Sensor Interaction**: The `SensorMonitor`  class is responsible for monitoring a PIR motion sensor using the `gpiozero` library. It detects motion and no-motion events, triggering registered callbacks for each event. The class is designed to be robust, with error handling for sensor-related issues and a flexible interface for callback registration.
 
 - **Screen Control**: The `ScreenControl` adjusts the brightness of the touchscreen based on signals from the `SensorMonitor`. It also communicates with the `SundownManager` to turn off the screen after sundown when no motion is detected for a longer duration.
 
