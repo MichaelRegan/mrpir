@@ -41,16 +41,16 @@ class ScreenControl:
             int: The current brightness level.
         """
         try:
-            with open(self.config.brightness_path, 'r', encoding='utf-8') as f:
-                brightness = int(f.read().strip())
+            with open(self.config.brightness_path, 'r', encoding='utf-8') as file:
+                brightness = int(file.read().strip())
                 logger.debug("Current brightness read from %s: %d",
                              self.config.brightness_path, brightness)
                 return brightness
-        except FileNotFoundError as e:
-            logger.error(f"Brightness file not found: {e}")
+        except FileNotFoundError as err:
+            logger.error(f"Brightness file not found: {err}")
             return self.config.bright_brightness  # Default to bright brightness if reading fails
-        except ValueError as e:
-            logger.error(f"Error parsing brightness value: {e}")
+        except ValueError as err:
+            logger.error(f"Error parsing brightness value: {err}")
             return self.config.bright_brightness  # Default to bright brightness if reading fails
 
     def on_motion(self) -> None:
@@ -114,12 +114,12 @@ class ScreenControl:
         logger.debug("Setting screen brightness to %d from %d", value, self.current_brightness)
         try:
             if value != self.current_brightness:
-                with open(self.config.brightness_path, 'w', encoding='utf-8') as f:
-                    f.write(str(value))
+                with open(self.config.brightness_path, 'w', encoding='utf-8') as file:
+                    file.write(str(value))
                 self.current_brightness = value
                 logger.debug("Screen brightness set to %d", value)
-        except OSError as e:
-            logger.error(f"Error setting brightness: {e}")
+        except OSError as err:
+            logger.error(f"Error setting brightness: {err}")
 
     def is_night_time(self) -> bool:
         """
@@ -138,8 +138,8 @@ class ScreenControl:
             logger.info("Turning off the screen.")
             subprocess.run(['wlr-randr', '--output', 'DSI-1', '--off'], check=True)
             self.current_brightness = 0
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error turning off the screen: {e}")
+        except subprocess.CalledProcessError as err:
+            logger.error(f"Error turning off the screen: {err}")
 
     def is_screen_off(self) -> bool:
         """
@@ -158,8 +158,8 @@ class ScreenControl:
                         return True
             logger.info("Screen is on.")
             return False
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error checking screen status: {e}")
+        except subprocess.CalledProcessError as err:
+            logger.error(f"Error checking screen status: {err}")
             return False
 
     def start(self) -> None:
