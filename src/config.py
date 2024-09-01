@@ -32,7 +32,8 @@ class Config:
         load_dotenv()
 
         # Load configuration from environment variables or set default values
-        self.brightness_path = os.getenv('BRIGHTNESS_PATH', '/sys/class/backlight/10-0045/brightness')
+        self.brightness_path = os.getenv('BRIGHTNESS_PATH',
+                                         '/sys/class/backlight/10-0045/brightness')
         self.dim_brightness = int(os.getenv('DIM_BRIGHTNESS', '0'))
         self.bright_brightness = int(os.getenv('BRIGHT_BRIGHTNESS', '90'))
         self.transition_time = int(os.getenv('TRANSITION_TIME', '30'))

@@ -1,8 +1,11 @@
+"""
+Main module for the application.
+"""
+
 import time
 from datetime import datetime, timedelta
-import asyncio
 from config import config
-from utils.logger import logger
+from utils.logger import logger  # pylint: disable=import-error
 from sensor_monitor import SensorMonitor
 from screen_control import ScreenControl
 from mqtt_helper import MQTTHelper
@@ -10,13 +13,18 @@ from service_manager import ServiceManager
 from utils.time_utils import is_after_sundown
 
 def main():
+    """
+    Main function to initialize and start the application components.
+    """
+
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
-    last_called = datetime.now() 
+    last_called = datetime.now()
     try:
+        config = config()
         service_manager = ServiceManager(config)
-        sensor_monitor = SensorMonitor(config) #, on_motion, on_no_motion)
+        sensor_monitor = SensorMonitor(config)
         screen_control = ScreenControl(config)
-        mqtt_helper = MQTTHelper(config)  # MQTTHelper is instantiated here
+        mqtt_helper = MQTTHelper(config)
 
         service_manager.notify_startup()
 
@@ -27,8 +35,7 @@ def main():
 
         sensor_monitor.start()
         screen_control.start()
-        # sundown_manager.start()
-        mqtt_helper.start()  # Start the MQTT client connection
+        mqtt_helper.start()
 
         # Default to no motion detected
         sensor_monitor.on_no_motion()
@@ -43,7 +50,7 @@ def main():
                     sensor_monitor.update_sensor()
                     logger.info("Sleeping for 1 hour before the next update.")
                 last_called = current_time  # Update the last called time
-                
+
                 service_manager.notify_status("Running")
             time.sleep(60)
 

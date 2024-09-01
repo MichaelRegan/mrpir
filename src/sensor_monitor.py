@@ -6,7 +6,6 @@ from config import config
 from utils.logger import logger
 from sensor_monitor import SensorMonitor
 from screen_control import ScreenControl
-from sundown_manager import SundownManager
 from mqtt_helper import MQTTHelper
 from service_manager import ServiceManager
 from utils.time_utils import is_after_sundown

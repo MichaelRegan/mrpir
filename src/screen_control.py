@@ -1,8 +1,10 @@
-import time
+"""
+Screen Control module for managing screen brightness and state.
+"""
+
 import subprocess
-import os
 from datetime import datetime, timedelta
-from utils.logger import logger
+from utils.logger import logger  # pylint: disable=import-error
 from utils.time_utils import is_after_sundown
 
 
@@ -39,7 +41,7 @@ class ScreenControl:
             int: The current brightness level.
         """
         try:
-            with open(self.config.brightness_path, 'r') as f:
+            with open(self.config.brightness_path, 'r', encoding='utf-8') as f:
                 brightness = int(f.read().strip())
                 logger.debug(f"Current brightness read from {self.config.brightness_path}: {brightness}")
                 return brightness
@@ -102,7 +104,7 @@ class ScreenControl:
         logger.debug(f"Setting screen brightness to {value} from {self.current_brightness}")
         try:
             if value != self.current_brightness:
-                with open(self.config.brightness_path, 'w') as f:
+                with open(self.config.brightness_path, 'w', encoding='utf-8') as f:
                     f.write(str(value))
                 self.current_brightness = value
                 logger.debug(f"Screen brightness set to {value}")
@@ -124,7 +126,7 @@ class ScreenControl:
         """
         try:
             logger.info("Turning off the screen.")
-            os.system('wlr-randr --output DSI-1 --off')
+            subprocess.run(['wlr-randr', '--output', 'DSI-1', '--off'], check=True)
             self.current_brightness = 0
         except Exception as e:
             logger.error(f"Error turning off the screen: {e}")

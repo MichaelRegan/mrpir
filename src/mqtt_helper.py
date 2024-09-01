@@ -1,5 +1,9 @@
+"""
+MQTT Helper module for handling MQTT connections and events.
+"""
+
 import paho.mqtt.client as mqtt
-from utils.logger import logger
+from utils.logger import logger  # pylint: disable=import-error
 
 
 class MQTTHelper:
@@ -32,7 +36,7 @@ class MQTTHelper:
         if self.config.mqtt_username and self.config.mqtt_password:
             self.client.username_pw_set(self.config.mqtt_username, self.config.mqtt_password)
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, _client, _userdata, _flags, rc):
         """
         Callback for when the client connects to the MQTT broker.
 
@@ -47,7 +51,7 @@ class MQTTHelper:
         else:
             logger.error(f"Failed to connect to MQTT broker, return code {rc}")
 
-    def on_disconnect(self, client, userdata, rc):
+    def on_disconnect(self, _client, _userdata, _rc):
         """
         Callback for when the client disconnects from the MQTT broker.
 
@@ -58,7 +62,7 @@ class MQTTHelper:
         """
         logger.warning("Disconnected from MQTT broker")
 
-    def on_log(self, client, userdata, level, buf):
+    def on_log(self, _client, _userdata, _level, buf):
         """
         Callback for logging MQTT client messages.
 

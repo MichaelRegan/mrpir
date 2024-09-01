@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import pytz
+import pytz # pylint: disable=import-error
 
 
 def is_after_sundown(time_zone: str) -> bool:
@@ -30,9 +30,9 @@ def time_until_sundown(time_zone: str) -> float:
     """
     now = datetime.now(pytz.timezone(time_zone))
     sundown_time = now.replace(hour=18, minute=0, second=0, microsecond=0)
-    
+
     if now > sundown_time:
         # Sundown has already occurred today; calculate time until sundown tomorrow
         sundown_time += timedelta(days=1)
-    
+
     return (sundown_time - now).total_seconds()
