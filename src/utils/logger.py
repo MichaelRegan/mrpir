@@ -35,9 +35,6 @@ def setup_logging(default_path: str = '../config/log_config.yaml',
             except yaml.YAMLError as e:
                 print(f"Error parsing YAML file: {e}")
                 logging.basicConfig(level=default_level)
-            except Exception as e:
-                print(f"Error in logging configuration: {e}")
-                logging.basicConfig(level=default_level)
     else:
         print(f"Logging configuration file not found: {path}")
         logging.basicConfig(level=default_level)

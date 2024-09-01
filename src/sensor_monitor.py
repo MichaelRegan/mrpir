@@ -78,29 +78,23 @@ class SensorMonitor:
         """
         Handles the motion detected event and triggers the 'on_motion' callbacks.
         """
-        try:
-            self.motion_detected = True
-            self.last_motion_time = time.time()
-            logger.debug("MotionSensor: Motion detected")
-            if "on_motion" in self.callbacks:
-                for callback in self.callbacks["on_motion"]:
-                    callback()
-        except Exception as e:
-            logger.error(f"Unexpected error in on_motion: {e}")
+        self.motion_detected = True
+        self.last_motion_time = time.time()
+        logger.debug("MotionSensor: Motion detected")
+        if "on_motion" in self.callbacks:
+            for callback in self.callbacks["on_motion"]:
+                callback()
 
     def on_no_motion(self) -> None:
         """
         Handles the no motion detected event and triggers the 'on_no_motion' callbacks.
         """
-        try:
-            logger.debug("MotionSensor: No motion detected")
-            if not self.sensor.motion_detected:
-                self.motion_detected = False
-            if "on_no_motion" in self.callbacks:
-                for callback in self.callbacks["on_no_motion"]:
-                    callback()
-        except Exception as e:
-            logger.error(f"Unexpected error in on_no_motion: {e}")
+        logger.debug("MotionSensor: No motion detected")
+        if not self.sensor.motion_detected:
+            self.motion_detected = False
+        if "on_no_motion" in self.callbacks:
+            for callback in self.callbacks["on_no_motion"]:
+                callback()
 
     def update_sensor(self) -> None:
         """
@@ -114,8 +108,6 @@ class SensorMonitor:
                 self.on_no_motion()
         except gpiozero.GPIOZeroError as e:
             logger.error(f"GPIOZero error in update_sensor: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error in update_sensor: {e}")
 
     def stop(self) -> None:
         """
@@ -127,5 +119,3 @@ class SensorMonitor:
             logger.debug("SensorMonitor stopped.")
         except gpiozero.GPIOZeroError as e:
             logger.error(f"GPIOZero error in stop: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error in stop: {e}")
