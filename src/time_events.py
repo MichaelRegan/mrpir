@@ -30,6 +30,7 @@ class TimeEvents:
         self.config = config
         self.location = LocationInfo(config.location_name, config.region, "UTC", config.latitude, config.longitude)
         self.local_tz = pytz.timezone(self.location.timezone)
+        self.timers = []  # List to keep track of active timers
         logger.debug("Initialized TimeEvents at location '%s'", self.location.name)
 
     def _calculate_event_time(self, event: str) -> datetime:
@@ -99,7 +100,9 @@ class TimeEvents:
             # Reschedule the callback for the next day's event
             self._schedule_recurring_event(event, callback, delay_seconds)
 
-        threading.Timer(total_delay, delayed_execution).start()
+        timer = threading.Timer(total_delay, delayed_execution)
+        self.timers.append(timer)  # Keep track of the timer
+        timer.start()
 
     def get_timezone(self) -> str:
         """
@@ -123,7 +126,11 @@ class TimeEvents:
         Stops the time event scheduling process.
         """
         logger.info("TimeEvents stopped at location '%s'", self.location.name)
+        for timer in self.timers:
+            timer.cancel()
+        self.timers.clear()  # Clear the list of timers
 
+        
 # Example usage:
 # def sunup_callback():
 #     print("Sunup event triggered.")
