@@ -31,7 +31,7 @@ jobs:
         continue-on-error: true
       - name: Run tests
         run: |
-          pytest tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          PYTHONPATH=src pytest --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
