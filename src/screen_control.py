@@ -1,12 +1,14 @@
 """
 Screen Control module for managing screen brightness and state.
 """
-
+import time
 import subprocess
 from datetime import datetime, timedelta
-from utils.logger import logger  # pylint: disable=import-error
+import logging
+from utils.logger import logger # pylint: disable=import-error
 from utils.time_utils import is_after_sundown # pylint: disable=import-error
 
+logger = logging.getLogger(__name__)
 
 class ScreenControl:
     """
@@ -65,7 +67,7 @@ class ScreenControl:
         self.last_motion_time = datetime.now()
         logger.debug("Motion detected, setting brightness to bright level: %d",
                      self.config.bright_brightness)
-        self.set_brightness(self.config.bright_brightness)
+        self.smooth_transition(self.current_brightness, self.config.bright_brightness, self.config.transition_time)
 
     def on_no_motion(self) -> None:
         """
@@ -121,21 +123,23 @@ class ScreenControl:
         except OSError as err:
             logger.error(f"Error setting brightness: {err}")
 
-    # def is_night_time(self) -> bool:
-    #     """
-    #     Determines if it is currently nighttime based on the configured time zone.
+    def smooth_transition(self, start, end, duration):
+        """Smoothly transition the screen brightness."""
+        steps = 50  # Number of steps in the transition
+        step_delay = duration / steps  # Time between each step
+        brightness_range = end - start
 
-    #     Returns:
-    #         bool: True if it is after sundown, False otherwise.
-    #     """
-    #     return is_after_sundown(self.config.timezone)
+        for i in range(steps + 1):
+            current_brightness = start + (brightness_range * i // steps)
+            self.set_brightness(current_brightness)
+            time.sleep(step_delay)
 
     def turn_off_screen(self) -> None:
         """
         Turns off the screen using the system command.
         """
         try:
-            logger.info("Turning off the screen.")
+            logger.debug("Turning off the screen.")
             subprocess.run(['wlr-randr', '--output', 'DSI-1', '--off'], check=True)
             self.current_brightness = 0
         except subprocess.CalledProcessError as err:
@@ -149,14 +153,14 @@ class ScreenControl:
             bool: True if the screen is off, False otherwise.
         """
         try:
-            logger.info("Checking screen status.")
+            logger.debug("Checking screen status.")
             result = subprocess.run(['wlr-randr'], stdout=subprocess.PIPE, text=True, check=True)
             if 'DSI-1' in result.stdout:
                 for line in result.stdout.splitlines():
                     if 'DSI-1' in line and 'disabled' in line:
                         logger.info("Screen is off.")
                         return True
-            logger.info("Screen is on.")
+            logger.debug("Screen is on.")
             return False
         except subprocess.CalledProcessError as err:
             logger.error(f"Error checking screen status: {err}")

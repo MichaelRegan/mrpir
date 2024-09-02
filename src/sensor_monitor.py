@@ -2,10 +2,12 @@ from typing import Callable, Dict, List
 import threading
 import time
 from datetime import datetime, timedelta
+import logging
+from utils.logger import logger # pylint: disable=import-error
 import gpiozero  # pylint: disable=import-error
 from gpiozero import MotionSensor  # pylint: disable=import-error
-from utils.logger import logger  # pylint: disable=import-error
 
+logger = logging.getLogger(__name__)
 
 class SensorMonitor:
     """
@@ -62,7 +64,7 @@ class SensorMonitor:
         Starts the sensor monitoring by linking sensor events to the appropriate callbacks.
         """
         try:
-            logger.debug("SensorMonitor started and awaiting events.")
+            logger.info("SensorMonitor started and awaiting events.")
             self.sensor.when_motion = self.on_motion
             self.sensor.when_no_motion = self.on_no_motion
         except gpiozero.GPIOZeroError as err:
@@ -97,7 +99,7 @@ class SensorMonitor:
             if not self.sensor.motion_detected:
                 self.motion_detected = False
                 end_time = time.time()
-                logger.info(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
+                logger.debug(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
                 if "on_no_motion" in self.callbacks:
                     for callback in self.callbacks["on_no_motion"]:
                         callback()
@@ -125,6 +127,6 @@ class SensorMonitor:
         try:
             self._stop_event.set()
             self.sensor.close()
-            logger.debug("SensorMonitor stopped.")
+            logger.info("SensorMonitor stopped.")
         except gpiozero.GPIOZeroError as err:
             logger.error(f"GPIOZero error in stop: {err}")

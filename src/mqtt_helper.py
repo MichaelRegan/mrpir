@@ -4,8 +4,10 @@ MQTT Helper module for handling MQTT connections and events.
 
 import socket
 import paho.mqtt.client as mqtt  # pylint: disable=import-error
-from utils.logger import logger  # pylint: disable=import-error
+import logging
+from utils.logger import logger # pylint: disable=import-error
 
+logger = logging.getLogger(__name__)
 
 class MQTTHelper:
     """
@@ -95,7 +97,7 @@ class MQTTHelper:
         """
         if state != self.last_sent_state:
             self.client.publish(self.config.state_topic, state)
-            logger.info(f"Published state {state} to {self.config.state_topic}")
+            logger.debug(f"Published state {state} to {self.config.state_topic}")
             self.last_sent_state = state  # Update the last sent state
 
     def start(self) -> None:
@@ -116,3 +118,4 @@ class MQTTHelper:
         """
         self.client.loop_stop()
         self.client.disconnect()
+        logger.info("MQTT client stopped and disconnected")

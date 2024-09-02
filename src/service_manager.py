@@ -3,8 +3,11 @@ Manages communication with systemd, handling notifications for startup,
 status updates, and shutdown.
 """
 
+import logging
 import sdnotify # pylint: disable=import-error
-from utils.logger import logger # pylint: disable=import-error
+# from utils.logger import logger # pylint: disable=import-error
+
+logger = logging.getLogger(__name__)
 
 class ServiceManager:
     """

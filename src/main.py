@@ -9,13 +9,20 @@ from sensor_monitor import SensorMonitor # pylint: disable=import-error
 from screen_control import ScreenControl # pylint: disable=import-error
 from mqtt_helper import MQTTHelper # pylint: disable=import-error
 from service_manager import ServiceManager # pylint: disable=import-error
-from utils.logger import logger  # pylint: disable=import-error
+import logging
+from utils.logger import logger # pylint: disable=import-error
 from utils.time_utils import is_after_sundown # pylint: disable=import-error
+
+logger = logging.getLogger(__name__)
 
 def main():
     """
     Main function to initialize and start the application components.
     """
+    
+    logger.info("Logging is setup for info messages")
+    logger.error("Logging is setup for error messages")
+    logger.debug("Logging is setup for debug messages")
 
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
     last_called = datetime.now()
@@ -56,6 +63,8 @@ def main():
 
     except KeyboardInterrupt:
         logger.info("Shutting down service due to KeyboardInterrupt")
+    # except Exception as error:
+    #     logger.error(f"An error occurred: {error}")
     finally:
         if sensor_monitor:
             sensor_monitor.stop()
