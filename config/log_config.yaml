@@ -6,7 +6,7 @@ formatters:
 handlers:
   file_handler:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUG
+    level: INFO
     formatter: simple
     filename: 'mrpir.log'
     maxBytes: 10485760  # 10MB
