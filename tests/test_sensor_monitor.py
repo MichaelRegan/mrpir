@@ -1,6 +1,4 @@
 import time
-# import pytest
-# import gpiozero
 from dataclasses import dataclass
 from unittest.mock import patch, MagicMock
 from sensor_monitor import SensorMonitor # Import the SensorMonitor class
