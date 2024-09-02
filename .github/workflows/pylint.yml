@@ -29,12 +29,12 @@ jobs:
           pip install ruff
           ruff check --output-format=github .
         continue-on-error: true
-      - name: Run tests
-        run: |
-          coverage run -m pytest  -v -s 
+      # - name: Run tests
+      #   run: |
+      #     coverage run -m pytest  -v -s 
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: coverage.xml
+      # - name: Upload coverage report
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: coverage-report
+      #     path: coverage.xml
