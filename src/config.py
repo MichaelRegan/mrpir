@@ -42,22 +42,6 @@ class Config:
     """
     Loads and stores configuration settings from environment variables.
     Provides default values for settings if not specified in the environment.
-
-    Attributes:
-        brightness_path (str): Path to the screen brightness control file.
-        dim_brightness (int): Brightness level for dim state.
-        bright_brightness (int): Brightness level for bright state.
-        transition_time (int): Time in seconds for brightness transitions.
-        timezone (str): Time zone for determining sundown.
-        no_motion_timeout (int): Timeout in seconds for detecting no motion.
-        sundown_timeout (int): Timeout in seconds for screen off after sundown.
-        mqtt_device (str): MQTT device name.
-        state_topic (str): MQTT state topic for the device.
-        mqtt_host (str): MQTT broker host address.
-        mqtt_port (int): MQTT broker port.
-        mqtt_username (str): MQTT broker username.
-        mqtt_password (str): MQTT broker password.
-        gpio_pin (int): GPIO pin number used for motion detection.
     """
 
     def __init__(self):
