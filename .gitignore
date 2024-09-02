@@ -116,7 +116,7 @@ pyvenv.cfg
 pip-selfcheck.json
 
 .env
-# .venv
+# .venv 
 env/
 venv/
 ENV/
