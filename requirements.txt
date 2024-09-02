@@ -23,5 +23,3 @@ sdnotify==0.3.2
 systemd-python==235
 tox==4.18.0
 virtualenv==20.26.3
-libsystemd
-libsystemd-journal
