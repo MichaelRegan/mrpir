@@ -20,7 +20,7 @@ def main():
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
     last_called = datetime.now()
     try:
-        # config = config()
+        config = config()
         service_manager = ServiceManager(config)
         sensor_monitor = SensorMonitor(config.sensor)
         screen_control = ScreenControl(config.display)

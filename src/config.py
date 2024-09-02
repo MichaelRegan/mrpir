@@ -85,4 +85,5 @@ class Config:
         )
 
 # Instantiate the Config class to be used throughout the application
-config = Config()
+# should consider getting rid of this...
+# config = Config()
