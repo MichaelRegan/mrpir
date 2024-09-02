@@ -6,7 +6,7 @@ import subprocess
 from datetime import datetime, timedelta
 import logging
 from utils.logger import logger # pylint: disable=import-error
-from src.time_events import is_after_sundown # pylint: disable=import-error
+from time_events import TimeEvents # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 

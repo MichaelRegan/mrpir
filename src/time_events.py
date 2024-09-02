@@ -28,7 +28,7 @@ class TimeEvents:
             config (dict): Configuration settings for time events, including location details.
         """
         self.config = config
-        self.location = LocationInfo(config['location_name'], config['region'], "UTC", config['latitude'], config['longitude'])
+        self.location = LocationInfo(config.location_name, config.region, "UTC", config.latitude, config.longitude)
         self.local_tz = pytz.timezone(self.location.timezone)
         logger.debug("Initialized TimeEvents at location '%s'", self.location.name)
 

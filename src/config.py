@@ -39,7 +39,7 @@ class SensorConfig:
     no_motion_delay: int
 
 @dataclass
-class RimeEventsConfig:
+class TimeEventsConfig:
     location_name: str
     region: str
     latitude: float
@@ -93,7 +93,7 @@ class Config:
         )
 
         # time event settings
-        self.time_event = RimeEventsConfig(
+        self.time_events = TimeEventsConfig(
             location_name=os.getenv('LOCATION_NAME', 'New York'),
             region=os.getenv('REGION', 'USA'),
             latitude=float(os.getenv('LATITUDE', '40.7128')),
