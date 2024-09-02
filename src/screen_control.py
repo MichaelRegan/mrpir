@@ -76,6 +76,7 @@ class ScreenControl:
         if no motion is detected for a specified duration.
         """
         if self.motion_detected:
+            logger.debug("motion_detected == true.")
             # Transitioning from motion detected to no motion detected
             self.motion_detected = False
             self.set_brightness(self.config.dim_brightness)
@@ -93,6 +94,7 @@ class ScreenControl:
                 else:
                     logger.debug("No motion has been detected yet.")
         else:
+            logger.debug("self.motion_detected == false.")
             # Already in 'no motion' state, check if the screen should be turned off at night
             if is_after_sundown(self.config.timezone):
                 if self.last_motion_time:
@@ -119,7 +121,7 @@ class ScreenControl:
                 with open(self.config.brightness_path, 'w', encoding='utf-8') as file:
                     file.write(str(value))
                 self.current_brightness = value
-                logger.debug("Screen brightness set to %d", value)
+                # logger.debug("Screen brightness set to %d", value)
         except OSError as err:
             logger.error(f"Error setting brightness: {err}")
 
