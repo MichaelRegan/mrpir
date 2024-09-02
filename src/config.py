@@ -84,8 +84,5 @@ class Config:
             no_motion_timeout=int(os.getenv('NO_MOTION_TIMEOUT', '60'))
         )
 
-        # GPIO settings
-        # self.gpio_pin = int(os.getenv('GPIO_PIN', '23'))
-
 # Instantiate the Config class to be used throughout the application
 config = Config()
