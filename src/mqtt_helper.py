@@ -25,7 +25,7 @@ class MQTTHelper:
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_log = self.on_log  # Enable logging for the MQTT client
-        self.client.client_id = "pir_officescreen_id"
+        self.client.client_id = self.config.client_id
         self.last_sent_state = None  # Track the last state sent to Home Assistant
 
         # Set MQTT username and password if provided in the configuration

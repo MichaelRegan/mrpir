@@ -38,7 +38,7 @@ def main():
         mqtt_helper.start()
 
         # Default to no motion detected
-        sensor_monitor.on_no_motion()
+        # sensor_monitor.on_no_motion()
 
         while True:
             current_time = datetime.now()

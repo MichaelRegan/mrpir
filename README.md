@@ -192,7 +192,7 @@ All settings are controlled via the `.env` file. Key configurations include:
 
 ### PIR Sensor settings
     GPIO_PIN=23             # GPIO pin connected to the PIR motion sensor
-    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no motion is detected
+    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no 
 
 ### MQTT Settings
     MQTT_BROKER=""      # MQTT server address as FQDN or IP
@@ -201,9 +201,6 @@ All settings are controlled via the `.env` file. Key configurations include:
     MQTT_PASSWORD=""    # MQTT password
     MQTT_CLIENT_ID=""   # MQTT client ID is a unique string for mqtt
     MQTT_DEVICE=""      # MQTT device identifier such as the rasperry pi name
-
-### Logging
-    LOG_LEVEL=WARN      # Logging level (DEBUG, INFO, WARN, ERROR)
 
 ### Night Mode Settings
     SCREEN_OFF_DELAY=3600   # Timeout in seconds before turning off the screen during night mode (1 hour)

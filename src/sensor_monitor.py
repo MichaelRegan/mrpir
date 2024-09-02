@@ -1,16 +1,9 @@
-"""
-Module: SensorMonitor
-Description: This module monitors a motion sensor using the gpiozero library and triggers
-             registered callbacks for motion and no-motion events. It provides an interface
-             for registering callbacks, starting and stopping the sensor, and manually
-             updating the sensor state.
-"""
-
 from typing import Callable, Dict, List
 import threading
 import time
-import gpiozero # pylint: disable=import-error
-from gpiozero import MotionSensor # pylint: disable=import-error
+from datetime import datetime, timedelta
+import gpiozero  # pylint: disable=import-error
+from gpiozero import MotionSensor  # pylint: disable=import-error
 from utils.logger import logger  # pylint: disable=import-error
 
 
@@ -22,7 +15,6 @@ class SensorMonitor:
         config (dict): Configuration settings for the sensor monitor.
         callbacks (Dict[str, List[Callable]]): A dictionary of callback lists for motion events.
         motion_detected (bool): Tracks whether motion is currently detected.
-        last_motion_time (float): The timestamp of the last detected motion.
         _stop_event (threading.Event): Event to signal the sensor monitor to stop.
         sensor (MotionSensor): The motion sensor instance from gpiozero.
     """
@@ -40,7 +32,9 @@ class SensorMonitor:
         }
         self.config = config
         self.motion_detected = False
-        self.last_motion_time = time.time() - self.config.no_motion_timeout
+        
+        # set the last motion time far enough back to trigger the first no_motion event
+        # self.last_motion_time = time.time() - self.config.no_motion_delay
         self._stop_event = threading.Event()
 
         try:
@@ -79,7 +73,7 @@ class SensorMonitor:
         Handles the motion detected event and triggers the 'on_motion' callbacks.
         """
         self.motion_detected = True
-        self.last_motion_time = time.time()
+        # self.last_motion_time = time.time()
         logger.debug("MotionSensor: Motion detected")
         if "on_motion" in self.callbacks:
             for callback in self.callbacks["on_motion"]:
@@ -87,14 +81,29 @@ class SensorMonitor:
 
     def on_no_motion(self) -> None:
         """
-        Handles the no motion detected event and triggers the 'on_no_motion' callbacks.
+        Handles the no motion detected event with a delay before triggering the 'on_no_motion' callbacks.
         """
-        logger.debug("MotionSensor: No motion detected")
-        if not self.sensor.motion_detected:
-            self.motion_detected = False
-        if "on_no_motion" in self.callbacks:
-            for callback in self.callbacks["on_no_motion"]:
-                callback()
+        def delayed_no_motion():
+            current_time = datetime.now()
+            target_time = current_time + timedelta(seconds=self.config.no_motion_delay)
+
+            start_time = time.time()
+            logger.debug(f"Current time: {current_time.strftime('%H:%M:%S')} | Target time: {target_time.strftime('%H:%M:%S')} | offset: {self.config.no_motion_delay} seconds")
+
+            # Wait for the no_motion_delay period
+            time.sleep(self.config.no_motion_delay)
+
+            # Ensure no new motion was detected during the delay
+            if not self.sensor.motion_detected:
+                self.motion_detected = False
+                end_time = time.time()
+                logger.info(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
+                if "on_no_motion" in self.callbacks:
+                    for callback in self.callbacks["on_no_motion"]:
+                        callback()
+
+        # Start a thread to handle the delay
+        threading.Thread(target=delayed_no_motion).start()
 
     def update_sensor(self) -> None:
         """
