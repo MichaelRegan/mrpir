@@ -6,7 +6,7 @@ import subprocess
 from datetime import datetime, timedelta
 import logging
 from utils.logger import logger # pylint: disable=import-error
-from utils.time_utils import is_after_sundown # pylint: disable=import-error
+from src.time_events import is_after_sundown # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,9 @@ class ScreenControl:
         self.current_brightness = self.get_current_brightness()
         self.last_motion_time = None  # Track the last motion detection time
         self.motion_detected = None
+        self.on_sundown = None
+        self.on_sunup = None
+        self.night_time = False
 
     def get_current_brightness(self):
         """
@@ -72,41 +75,65 @@ class ScreenControl:
     def on_no_motion(self) -> None:
         """
         Handles the event when no motion is detected.
-        Dims the screen and may turn it off after sundown 
-        if no motion is detected for a specified duration.
+        Dims the screen and turns it off after sundown 
         """
-        if self.motion_detected:
-            logger.debug("motion_detected == true.")
-            # Transitioning from motion detected to no motion detected
-            self.motion_detected = False
+
+        if self.night_time == False:
             self.set_brightness(self.config.dim_brightness)
-
-            if is_after_sundown(self.config.timezone):
-                if self.last_motion_time:
-                    time_since_last_motion = datetime.now() - self.last_motion_time
-                    logger.debug("Time since last motion: %s", time_since_last_motion)
-
-                    if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
-                        logger.debug(
-                            "No motion detected for %d seconds after sundown.",
-                            self.config.screen_off_delay)
-                        self.turn_off_screen()
-                else:
-                    logger.debug("No motion has been detected yet.")
         else:
-            logger.debug("self.motion_detected == false.")
-            # Already in 'no motion' state, check if the screen should be turned off at night
-            if is_after_sundown(self.config.timezone):
-                if self.last_motion_time:
-                    time_since_last_motion = datetime.now() - self.last_motion_time
-                    logger.debug("Time since last motion: %s", time_since_last_motion)
+            if not self.is_screen_off():
+                self.turn_off_screen()
+                logger.debug("on_no_motion: Screen turned off after sundown.")
 
-                    if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
-                        logger.debug(
-                            "No motion detected for %d seconds after sundown.",
-                            self.config.screen_off_delay)
-                        if not self.is_screen_off():
-                            self.turn_off_screen()
+        # if self.motion_detected:
+        #     logger.debug("motion_detected == true.")
+        #     # Transitioning from motion detected to no motion detected
+        #     self.motion_detected = False
+        #     self.set_brightness(self.config.dim_brightness)
+
+        #     if self.night_time:
+        #         if self.last_motion_time:
+        #             time_since_last_motion = datetime.now() - self.last_motion_time
+        #             logger.debug("Time since last motion: %s", time_since_last_motion)
+
+        #             if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
+        #                 logger.debug(
+        #                     "No motion detected for %d seconds after sundown.",
+        #                     self.config.screen_off_delay)
+        #                 self.turn_off_screen()
+        #         else:
+        #             logger.debug("No motion has been detected yet.")
+        # else:
+        #     logger.debug("self.motion_detected == false.")
+        #     # Already in 'no motion' state, check if the screen should be turned off at night
+        #     if is_after_sundown(self.config.timezone):
+        #         if self.last_motion_time:
+        #             time_since_last_motion = datetime.now() - self.last_motion_time
+        #             logger.debug("Time since last motion: %s", time_since_last_motion)
+
+        #             if time_since_last_motion >= timedelta(seconds=self.config.screen_off_delay):
+        #                 logger.debug(
+        #                     "No motion detected for %d seconds after sundown.",
+        #                     self.config.screen_off_delay)
+        #                 if not self.is_screen_off():
+        #                     self.turn_off_screen()
+
+    def on_sundown(self) -> None:
+        """
+        Handles the event when the sun goes down.        
+        """
+        self.night_time = True
+        if (self.motion_detected == False):
+            self.turn_off_screen()
+            logger.debug("on_sundown: Screen turned off after sundown.")
+
+    def on_sunup(self) -> None:
+        """
+        Handles the event when the sun comes up.
+        """
+        self.night_time = False
+        # if (self.motion_detected == False):
+        #     self.set_brightness(self.config.dim_brightness)
 
     def set_brightness(self, value: int) -> None:
         """

@@ -38,6 +38,14 @@ class SensorConfig:
     gpio_pin: int
     no_motion_delay: int
 
+@dataclass
+class RimeEventsConfig:
+    location_name: str
+    region: str
+    latitude: float
+    longitude: float
+
+
 class Config:
     """
     Loads and stores configuration settings from environment variables.
@@ -56,7 +64,7 @@ class Config:
             brightness_path=os.getenv('BRIGHTNESS_PATH', '/sys/class/backlight/10-0045/brightness'),
             dim_brightness=int(os.getenv('DIM_BRIGHTNESS', '0')),
             bright_brightness=int(os.getenv('BRIGHT_BRIGHTNESS', '90')),
-            transition_time=int(os.getenv('TRANSITION_TIME', '30')),
+            transition_time=int(os.getenv('TRANSITION_TIME', '2')),
             timezone=os.getenv('timezone', 'America/Los_Angeles')
         )
 
@@ -82,4 +90,12 @@ class Config:
         self.sensor = SensorConfig(
             gpio_pin=int(os.getenv('GPIO_PIN', '23')),
             no_motion_delay=int(os.getenv('NO_MOTION_DELAY', '60'))
+        )
+
+        # time event settings
+        self.time_event = RimeEventsConfig(
+            location_name=os.getenv('LOCATION_NAME', 'New York'),
+            region=os.getenv('REGION', 'USA'),
+            latitude=float(os.getenv('LATITUDE', '40.7128')),
+            longitude=float(os.getenv('LONGITUDE', '-74.0060'))
         )
