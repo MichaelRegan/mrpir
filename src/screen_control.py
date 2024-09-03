@@ -76,7 +76,8 @@ class ScreenControl:
 
         if not self.night_time:
             logger.debug("on_no_motion: Night time == false.dim_brightness: {self.config.dim_brightness}")
-            self.set_brightness(self.config.dim_brightness)
+            # self.set_brightness(self.config.dim_brightness)
+            self.smooth_transition(self.current_brightness, self.config.dim_brightness, self.config.transition_time)
         else:
             if not self.is_screen_off():
                 self.turn_off_screen()
@@ -163,9 +164,18 @@ class ScreenControl:
         """
         Initializes the screen control, setting the brightness to bright and waiting for events.
         """
-        self.current_brightness = self.get_current_brightness()
-        self.set_brightness(self.config.bright_brightness)
-        self.motion_detected = True
+        if self.is_screen_off():
+            self.current_brightness = 0
+            self.motion_detected = False
+        else:
+            brightness = self.get_current_brightness()
+            if self.get_current_brightness() == self.config.dim_brightness:
+                self.motion_detected = False
+            else:
+                self.current_brightness = self.get_current_brightness()
+                self.set_brightness(self.config.bright_brightness)
+                self.motion_detected = True
+
         logger.info("ScreenControl started and awaiting events.")
 
     def stop(self) -> None:
