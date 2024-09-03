@@ -66,7 +66,7 @@ The `mrpir` application is composed of several key modules, each with distinct r
    - The class includes error handling for operations related to the `gpiozero` library. Errors are logged, and in cases where the sensor fails to initialize or operate correctly, the system can raise an exception or enter a safe state.
 
    **Usage in the Application:**
-   - The `SensorMonitor` integrates with the `ScreenControl` and `MQTTHelper` classes, triggering actions like adjusting screen brightness or notifying Home Assistant based on motion events. The class’s ability to register callbacks makes it flexible and easily extendable.
+   - The `SensorMonitor` integrates with the `ScreenControl` and `MQTTSensorHelper` classes, triggering actions like adjusting screen brightness or notifying Home Assistant based on motion events. The class’s ability to register callbacks makes it flexible and easily extendable.
 
    **Test Considerations:**
    - Testing should include scenarios for motion detection, no-motion detection, callback invocation, error handling, and the start/stop functionality. Mocking the `gpiozero` library will be essential for isolating sensor behavior in unit tests.
@@ -77,7 +77,7 @@ The `mrpir` application is composed of several key modules, each with distinct r
    - Smoothly transitions screen brightness to 90% upon motion detection and dims it to 0% after a configurable period of no motion.
    - Integrates with the `SundownManager` to turn off the screen after sundown if no motion is detected for an extended period.
 
-4. **`MQTTHelper` (mqtt_helper.py)**
+4. **`MQTTSensorHelper` (mqtt_helper.py)**
    - Manages MQTT communication with Home Assistant.
    - Publishes updates on the motion state to a specific MQTT topic, enabling Home Assistant to respond to motion or lack thereof.
    - Handles errors in MQTT communication, including retry mechanisms.
@@ -95,7 +95,7 @@ The components in the `mrpir` application interact with each other and external 
 
 - **Screen Control**: The `ScreenControl` adjusts the brightness of the touchscreen based on signals from the `SensorMonitor`. It also communicates with the `SundownManager` to turn off the screen after sundown when no motion is detected for a longer duration.
 
-- **MQTT Communication**: The `MQTTHelper` manages the communication with Home Assistant by publishing the current motion state. This allows Home Assistant to perform actions based on the detected motion or lack thereof.
+- **MQTT Communication**: The `MQTTSensorHelper` manages the communication with Home Assistant by publishing the current motion state. This allows Home Assistant to perform actions based on the detected motion or lack thereof.
 
 - **Service Management**: The `ServiceManager` ensures the application runs as a systemd service, allowing it to start automatically on boot and providing status updates to the system.
 
@@ -117,7 +117,7 @@ Error handling in `mrpir` is robust and distributed across all components:
 
 - **SensorMonitor**: Handles sensor-related errors, including timeouts and hardware failures. Implements retry logic to recover from transient errors.
 - **ScreenControl**: Handles errors related to adjusting screen brightness, ensuring that the screen is not left in an undefined state.
-- **MQTTHelper**: Implements error handling for MQTT communication failures, including retries and fallback mechanisms to ensure reliable communication with Home Assistant.
+- **MQTTSensorHelper**: Implements error handling for MQTT communication failures, including retries and fallback mechanisms to ensure reliable communication with Home Assistant.
 - **ServiceManager**: Handles errors related to service management, including failures to notify systemd or issues with starting/stopping the service.
 
 ---

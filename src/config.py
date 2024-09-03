@@ -16,6 +16,8 @@ class MQTTConfig:
     port: int
     username: str = None
     password: str = None
+    config_topic: str = None
+    config_payload: str = None
 
 @dataclass
 class DisplayConfig:
@@ -86,7 +88,15 @@ class Config:
             host=os.getenv('MQTT_HOST', 'localhost'),
             port=int(os.getenv('MQTT_PORT', '1883')),
             username=os.getenv('MQTT_USERNAME', None),
-            password=os.getenv('MQTT_PASSWORD', None)
+            password=os.getenv('MQTT_PASSWORD', None),
+            config_topic=f'homeassistant/binary_sensor/{mqtt_device}/config',
+            config_payload=(
+                '{"name": "%s_motion", '
+                '"device_class": "motion", '
+                '"unique_id": "pir_%s_id_%s_id", '
+                '"state_topic": "%s"}' % (
+                    mqtt_device, mqtt_device, mqtt_device, f"homeassistant/binary_sensor/{mqtt_device}/state")
+            )
         )
 
         # Sensor settings

@@ -6,7 +6,7 @@ import time
 from config import Config
 from sensor_monitor import SensorMonitor # pylint: disable=import-error
 from screen_control import ScreenControl # pylint: disable=import-error
-from mqtt_helper import MQTTHelper # pylint: disable=import-error
+from mqtt_sensor_helper import MQTTSensorHelper # pylint: disable=import-error
 from service_manager import ServiceManager # pylint: disable=import-error
 import logging
 from utils.logger import logger # pylint: disable=import-error
@@ -31,7 +31,7 @@ def main():
         sensor_monitor = SensorMonitor(config.sensor)
         screen_control = ScreenControl(config.display)
         time_events = TimeEvents(config.time_events)
-        mqtt_helper = MQTTHelper(config.mqtt)
+        mqtt_helper = MQTTSensorHelper(config.mqtt)
 
         service_manager.notify_startup()
         sensor_monitor.register_callback("on_motion", screen_control.on_motion)

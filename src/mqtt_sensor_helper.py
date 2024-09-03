@@ -9,7 +9,7 @@ from utils.logger import logger # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 
-class MQTTHelper:
+class MQTTSensorHelper:
     """
     Helper class to manage MQTT communication, including connecting to the broker,
     handling motion detection events, and publishing states to Home Assistant.
@@ -17,7 +17,7 @@ class MQTTHelper:
 
     def __init__(self, config):
         """
-        Initializes the MQTTHelper with the given configuration.
+        Initializes the MQTTSensorHelper with the given configuration.
 
         Args:
             config (dict): Configuration settings for the MQTT client.
@@ -76,7 +76,7 @@ class MQTTHelper:
         """
         Handles motion detected events by publishing the 'ON' state to Home Assistant.
         """
-        logger.debug("MQTTHelper: Motion detected, publishing state ON.")
+        logger.debug("MQTTSensorHelper: Motion detected, publishing state ON.")
         if self.last_sent_state != "ON":
             self.publish_state("ON")
 
@@ -84,7 +84,7 @@ class MQTTHelper:
         """
         Handles no motion detected events by publishing the 'OFF' state to Home Assistant.
         """
-        logger.debug("MQTTHelper: No motion detected, publishing state OFF.")
+        logger.debug("MQTTSensorHelper: No motion detected, publishing state OFF.")
         if self.last_sent_state != "OFF":
             self.publish_state("OFF")
 
@@ -100,12 +100,20 @@ class MQTTHelper:
             logger.debug(f"Published state {state} to {self.config.state_topic}")
             self.last_sent_state = state  # Update the last sent state
 
+    def publish_home_assistant_config(self) -> None:
+        """
+        Published the Home Assistant configuration to the configured MQTT topic if the state has changed.        
+        """
+        self.client.publish(self.config.config_topic, self.config.config_payload)
+        logger.debug(f"Published state {self.config.config_payload} to {self.config.config_topic}")
+
     def start(self) -> None:
         """
         Starts the MQTT client and connects to the broker.
         """
         try:
             self.client.connect(self.config.host, self.config.port, 60)
+            self.publish_home_assistant_config()
             self.client.loop_start()
         # except mqtt.MQTTException as error:
         #     logger.error(f"MQTT-specific error: {error}")
