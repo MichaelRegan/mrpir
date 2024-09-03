@@ -31,10 +31,17 @@ mrpir is a Python application designed to control the brightness and power state
 
 2. **Create and Activate a Virtual Environment:**
 
+   On Linux
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    ```
+   On Windows
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
 
 3. **Install Dependencies:**
 
