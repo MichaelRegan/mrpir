@@ -69,8 +69,8 @@ class Config:
             brightness_path=os.getenv('BRIGHTNESS_PATH', '/sys/class/backlight/10-0045/brightness'),
             dim_brightness=int(os.getenv('DIM_BRIGHTNESS', '0')),
             bright_brightness=int(os.getenv('BRIGHT_BRIGHTNESS', '90')),
-            transition_time=int(os.getenv('TRANSITION_TIME', '2')),
-            timezone=os.getenv('timezone', 'America/Los_Angeles')
+            transition_time=int(os.getenv('TRANSITION_TIME', '2'))
+            # timezone=os.getenv('timezone', 'America/Los_Angeles')
         )
 
         # Timeout settings

@@ -1,7 +1,3 @@
-Here's a draft of the `README.md` file for your project:
-
----
-
 # mrpir - Motion-Activated Screen Control
 
 mrpir is a Python application designed to control the brightness and power state of a screen based on motion detection. It is optimized for use with a Raspberry Pi, a PIR motion sensor, and a connected screen. The application uses MQTT for integration with Home Assistant and features a night mode where the screen is turned off after a period of inactivity.
@@ -12,15 +8,15 @@ mrpir is a Python application designed to control the brightness and power state
 - **Smooth Brightness Transition:** Gradual changes in screen brightness for a better user experience.
 - **Night Mode:** Automatically turn off the screen at night after a configurable period of inactivity.
 - **MQTT Integration:** Communicate motion states to Home Assistant via MQTT.
-- **Systemd Integration:** Designed to run as a service with watchdog support.
+- **User Service Integration:** Designed to run as a user service with watchdog support.
 
 ## Installation
 
 ### Prerequisites
 
-- Raspberry Pi (or similar device)
+- Raspberry Pi (or similar device) running a linux distribution with Waland
 - PIR Motion Sensor connected to a GPIO pin
-- Screen connected and controlled via `wlr-randr`
+- Screen connected and controllable via `wlr-randr`
 - Python 3.6+ installed
 - Virtual environment for Python recommended
 
@@ -50,84 +46,72 @@ mrpir is a Python application designed to control the brightness and power state
 
    Create a `.env` file in the project root and set the necessary environment variables:
 
-   ```dotenv
-   DIM_BRIGHTNESS
-   BRIGHT_BRIGHTNESS
-   TRANSITION_TIME
-   NO_MOTION_DELAY
-   GPIO_PIN
-   BRIGHTNESS_PATH
-   MQTT_BROKER
-   MQTT_PORT
-   MQTT_USERNAME
-   MQTT_PASSWORD
-   MQTT_CLIENT_ID
-   MQTT_DEVICE
-   LOG_LEVEL
-   NIGHT_MODE_START
-   NIGHT_MODE_END
-   NIGHT_MODE_TIMEOUT
-   ```
+    All settings are controlled via the `.env` file. Key configurations include:
 
-5. **Configure Systemd Service:**
+    ### Display Settings
+    Turning the screen off and on is accomplished with wrl-ranr. A typical command would look like: "wlr-randr --output DSI-1 --on". The screen device can be HDMI-1, DSI-1 for the raspberry Pi official screen, or others. Check the screen options in raspberry pi.
 
-   Copy the `mrpir.service` file to `/etc/systemd/system/`:
+    ```dotenv
+    DIM_BRIGHTNESS=0            # The brightness level when dimmed (0-255)
+    BRIGHT_BRIGHTNESS=230       # The brightness level when bright (0-255)
+    BRIGHTNESS_PATH=            # Example: /sys/class/backlight/[10-0045]/brightness - replace [10-0045] with your screen
+    TRANSITION_TIME=2           # Time in seconds for brightness transitions
 
-   ```bash
-   cp mrpir.service ~/.config/systemd/user/
-   ```
-    Edit ~/.config/systemd/user/mrpir.service
-
-    ```bash
-    nano ~/.config/systemd/user/mrpir.service
+    SUNDOWN_TIMEOUT-3600        # Seconds after sundown for the screen to turn off
     ```
-    Update the following values:
 
-    ExecStart=/full/path/to/venv/python /full/path/to/main/py
+    ### PIR Sensor settings
+    ```dotenv
+        GPIO_PIN=23             # GPIO pin connected to the PIR motion sensor
+        NO_MOTION_DELAY=5       # Delay in seconds before dimming after no 
+    ```
+
+    ### MQTT Settings
+    ```dotenv
+        MQTT_HOST=""            # MQTT server address as FQDN or IP
+        MQTT_PORT=1883          # MQTT server port
+        MQTT_USERNAME=""        # MQTT username, leave blank for no username
+        MQTT_PASSWORD=""        # MQTT password, leave black for no password
+        MQTT_CLIENT_ID=""       # MQTT client ID is a unique string for mqtt
+        MQTT_DEVICE=""          # MQTT device identifier such as the rasperry pi name
+    ```
+
+    ### Night Mode Settings
+    ```dotenv
+        SCREEN_OFF_DELAY=3600   # Timeout in seconds before turning off the screen during night mode (1 hour)
+        NIGHT_START_HOUR=22     # Hour to start night mode (24-hour format, e.g., 22 for 10 PM)
+        NIGHT_END_HOUR=6        # Hour to end night mode (24-hour format, e.g., 6 for 6 AM)
+    ```
+
+    ### Time Events
+    ```dotenv
+        LOCATION_NAME=""        # Friendly name of your location, such as town or city
+        REGION=""               # Friendly name of your region, such as county
+        LATITUDE=""             # Example coordinates for New York City "40.712776"
+        LONGITUDE=""            # Example coordinates for New York City "-74.005974"
+    ```
+
+5. **Configure User Service:**
+
+   Update and enable the `mrpir.service` file as a user service:
+
+   Update the following values:
+
+    ExecStart=/full/path/to/venv/python /full/path/to/main.py
     * eg: /home/pi/Projects/mrpir/venv/bin/python /home/pi/Projects/mrpir/main.py
 
     WorkingDirectory=
     * eg: /home/pi/Projects/mrpir
 
-    EnvironmentFile=
-    * eg: /home/pi/Projects/mrpir/.env
-
-   Enable and start the service:
-
    ```bash
-   systemctl --user enable mrpir
-   systemctl --user start mrpir
+   mkdir -p ~/.config/systemd/user/
+   cp mrpir.service ~/.config/systemd/user/
+   systemctl --user daemon-reload
+   systemctl --user enable mrpir.service
+   systemctl --user start mrpir.service
    ```
 
-6. **Enable and Start the User Service**
-    
-    To start and enable the user service, you need to use the --user flag with systemctl:
-    
-    Reload the user systemd manager to recognize the new service:
-    
-    ```bash
-    systemctl --user daemon-reload
-    ```
-    ***Enable the service to start automatically at login:***
-
-    ```bash 
-    systemctl --user enable motion_detection.service
-    ```
-    
-    ***Start the service immediately:***
-
-    ```bash
-    systemctl --user start motion_detection.service
-    ```
-7. **Check the Status of the Service**
-
-    You can check the status of the user service with:
-
-    bash
-    Copy code
-    systemctl --user status motion_detection.service
-
-8. **Ensure the User Services Start at Boot**
+   ***Ensure the User Services Start at Boot***
 
     By default, user services don’t start at boot unless you enable lingering. To ensure that the user services start even after a reboot, you need to enable lingering for your user:
 
@@ -136,85 +120,59 @@ mrpir is a Python application designed to control the brightness and power state
     ```
     This command allows user services to start even when no user is logged in.
 
-6. **Manage the User Service**
+### Usage Scenarios
 
-    You can manage the user service similarly to a system service, using the systemctl --user command:
+- **Home Automation:** Integrate with Home Assistant to control the brightness of a Raspberry Pi screen based on room occupancy, creating a more energy-efficient smart home setup.
+- **Nighttime Mode:** Automatically dim or turn off the screen after a specified time at night to avoid unwanted light and save power.
+- **Conference Rooms:** Use the application in office environments to automatically manage the screen in conference rooms based on motion detection, ensuring screens are only active when needed.
+- **Public Displays:** Deploy in public areas where screens are active only when someone is in proximity, reducing energy consumption and extending screen life.
 
-    ***Stop the service:***
+### Code Structure
 
-    ``` bash
-    systemctl --user stop mrpir.service
-    ```
+- **config.py**: Handles loading environment variables and configurations.
+- **main.py**: The entry point of the application that initializes and starts the system components.
+- **mqtt_sensor_helper.py**: Manages MQTT communications for motion sensor data.
+- **screen_control.py**: Controls the screen brightness and power state.
+- **sensor_monitor.py**: Monitors the motion sensor and triggers callbacks based on detected motion or lack thereof.
+- **service_manager.py**: Manages the application as a user service, including integration with `sdnotify`.
+- **time_events.py**: Schedules and manages time-based events such as night mode transitions.
+- **logger.py**: Configures and manages logging for the application.
 
-    ***Start and restart the service:***
+### Running the Application
 
-    ```bash
-    systemctl --user start mrpir.service
-    systemctl --user restart mrpir.service
-    ```
+To manually start the application:
 
-    ***Disable the service:***
+```bash
+python main.py
+```
 
-    ```bash
-    systemctl --user disable mrpir.service
-    ```
+### Logs
 
-    ***View the system journal***
-    ```bash
-    journalctl --user -xeu mrpir.service
-    journalctl -u mrpir.service -n 100
-    ```
+Logs are stored in `~/.mrpir/logs`. You can check logs using:
 
-## Usage
+```bash
+tail -f ~/.mrpir/logs/mrpir.log
+```
 
-- The application runs as a systemd service, automatically adjusting screen brightness based on motion.
-- During the configured night mode period, the screen will turn off after the specified timeout if no motion is detected.
+### Troubleshooting
 
-### Commands
+- **Service Fails to Start:**
+  - Ensure that the service file is correctly placed in `~/.config/systemd/user/`.
+  - Run `systemctl --user status mrpir.service` to check the status and identify any errors.
 
-- **Turn Screen On:**
+- **Motion Detection Not Working:**
+  - Double-check the GPIO pin configuration in the `.env` file to ensure it matches the physical connection.
+  - Verify that the PIR sensor is functioning correctly by testing it with a simple Python script.
 
-   The screen is automatically turned on when motion is detected.
+- **MQTT Communication Issues:**
+  - Ensure the MQTT broker details in the `.env` file are correct, including the broker address, port, username, and password.
+  - Check network connectivity between the Raspberry Pi and the MQTT broker.
 
-- **Turn Screen Off:**
+- **Logs Not Appearing:**
+  - Verify that the log directory `~/.mrpir/logs` exists and is writable.
+  - Check the `LOG_LEVEL` setting in the `.env` file to ensure it's set appropriately (e.g., `INFO`, `DEBUG`).
 
-   The screen turns off during the night mode period after the configured timeout period of inactivity.
-
-## Configuration
-
-All settings are controlled via the `.env` file. Key configurations include:
-
-### Brightness Settings
-    DIM_BRIGHTNESS=0        # The brightness level when dimmed (0-255)
-    BRIGHT_BRIGHTNESS=230   # The brightness level when bright (0-255)
-    BRIGHTNESS_DEVICE       # As defined in the path to the brightness control file: /sys/class/backlight/{BRIGHTNESS_DEVICE}/brightness
-    TRANSITION_TIME=2       # Time in seconds for brightness transitions
-
-### PIR Sensor settings
-    GPIO_PIN=23             # GPIO pin connected to the PIR motion sensor
-    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no 
-
-### MQTT Settings
-    MQTT_BROKER=""      # MQTT server address as FQDN or IP
-    MQTT_PORT=1883      # MQTT server port
-    MQTT_USERNAME=""        # MQTT username
-    MQTT_PASSWORD=""    # MQTT password
-    MQTT_CLIENT_ID=""   # MQTT client ID is a unique string for mqtt
-    MQTT_DEVICE=""      # MQTT device identifier such as the rasperry pi name
-
-### Night Mode Settings
-    SCREEN_OFF_DELAY=3600   # Timeout in seconds before turning off the screen during night mode (1 hour)
-    NIGHT_START_HOUR=22     # Hour to start night mode (24-hour format, e.g., 22 for 10 PM)
-    NIGHT_END_HOUR=6        # Hour to end night mode (24-hour format, e.g., 6 for 6 AM)
-
-### Screen Control Commands
-Turning the screen off and on is accomplished with wrl-ranr. A typical command would look like: "wlr-randr --output DSI-1 --on". The screen device can be HDMI-1, DSI-1 for the raspberry Pi official screen, or others. Check the screen options in raspberry pi.
-
-    SCREEN_DEVICE="HDMI-1"   # This could also be DSI-1 or others. 
-    SCREEN_ON_COMMAND="wlr-randr --output DSI-1 --on"    # Screen off command
-
-
-## Contributing
+### Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request.
 
@@ -228,6 +186,40 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Paho MQTT](https://pypi.org/project/paho-mqtt/) for MQTT communication.
 - [SDNotify](https://pypi.org/project/sdnotify/) for systemd notifications.
 
----
 
-Feel free to customize the README as needed for your specific project requirements.
+## Configuration
+
+All settings are controlled via the `.env` file. Key configurations include:
+
+### Display Settings
+Turning the screen off and on is accomplished with wrl-ranr. A typical command would look like: "wlr-randr --output DSI-1 --on". The screen device can be HDMI-1, DSI-1 for the raspberry Pi official screen, or others. Check the screen options in raspberry pi.
+
+    DIM_BRIGHTNESS=0        # The brightness level when dimmed (0-255)
+    BRIGHT_BRIGHTNESS=230   # The brightness level when bright (0-255)
+    BRIGHTNESS_PATH=/sys/class/backlight/[10-0045]/brightness # replace [10-0045] with your screen
+    TRANSITION_TIME=2       # Time in seconds for brightness transitions
+
+    SUNDOWN_TIMEOUT-3600    # Seconds after sundown for the screen to turn off
+
+### PIR Sensor settings
+    GPIO_PIN=23             # GPIO pin connected to the PIR motion sensor
+    NO_MOTION_DELAY=5       # Delay in seconds before dimming after no 
+
+### MQTT Settings
+    MQTT_HOST=""            # MQTT server address as FQDN or IP
+    MQTT_PORT=1883          # MQTT server port
+    MQTT_USERNAME=""        # MQTT username, leave blank for no username
+    MQTT_PASSWORD=""        # MQTT password, leave black for no password
+    MQTT_CLIENT_ID=""       # MQTT client ID is a unique string for mqtt
+    MQTT_DEVICE=""          # MQTT device identifier such as the rasperry pi name
+
+### Night Mode Settings
+    SCREEN_OFF_DELAY=3600   # Timeout in seconds before turning off the screen during night mode (1 hour)
+    NIGHT_START_HOUR=22     # Hour to start night mode (24-hour format, e.g., 22 for 10 PM)
+    NIGHT_END_HOUR=6        # Hour to end night mode (24-hour format, e.g., 6 for 6 AM)
+
+### Time Events
+    LOCATION_NAME=""        # Friendly name of your location, such as town or city
+    REGION=""               # Friendly name of your region, such as county
+    LATITUDE=""             # Example coordinates for New York City "40.712776"
+    LONGITUDE=""            # Example coordinates for New York City "-74.005974"
