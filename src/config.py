@@ -57,7 +57,10 @@ class Config:
         Initializes the Config class by loading environment variables
         and setting default values where necessary.
         """
-        load_dotenv()
+        # Load environment variables from the specified .env file location
+        env_path = os.path.expanduser('~/.mrpir/config/.env')
+        load_dotenv(dotenv_path=env_path)
+        
 
         # Display settings
         self.display = DisplayConfig(

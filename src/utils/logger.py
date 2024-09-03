@@ -49,5 +49,5 @@ def setup_logging(default_path: str = '~/.mrpir/config/log_config.yaml',
         logging.basicConfig(level=default_level)
 
 # Initialize the logger and set up logging configuration
-logger = logging.getLogger(__name__)
 setup_logging()
+logger = logging.getLogger(__name__)

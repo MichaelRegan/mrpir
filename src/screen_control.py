@@ -3,10 +3,9 @@ Screen Control module for managing screen brightness and state.
 """
 import time
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 from utils.logger import logger # pylint: disable=import-error
-from time_events import TimeEvents # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +74,7 @@ class ScreenControl:
         Dims the screen and turns it off after sundown 
         """
 
-        if self.night_time == False:
+        if not self.night_time:
             logger.debug("on_no_motion: Night time == false.dim_brightness: {self.config.dim_brightness}")
             self.set_brightness(self.config.dim_brightness)
         else:
@@ -88,7 +87,7 @@ class ScreenControl:
         Handles the event when the sun goes down.        
         """
         self.night_time = True
-        if (self.motion_detected == False):
+        if  not self.motion_detected:
             self.turn_off_screen()
             logger.debug("on_sundown: Screen turned off after sundown.")
 

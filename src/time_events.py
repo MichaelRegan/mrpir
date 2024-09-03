@@ -5,9 +5,10 @@ Time-based event scheduling utility that supports callbacks for sunup, sundown, 
 from datetime import datetime, timedelta
 import pytz  # pylint: disable=import-error
 import threading
-import logging
 from astral import LocationInfo
 from astral.sun import sun
+import logging
+from utils.logger import logger # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 

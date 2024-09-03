@@ -3,7 +3,6 @@ Main module for the application.
 """
 
 import time
-from datetime import datetime, timedelta
 from config import Config
 from sensor_monitor import SensorMonitor # pylint: disable=import-error
 from screen_control import ScreenControl # pylint: disable=import-error
@@ -25,7 +24,7 @@ def main():
     logger.debug("Logging is setup for debug messages")
 
     service_manager = sensor_monitor = screen_control = sundown_manager = mqtt_helper = None
-    last_called = datetime.now()
+
     try:
         config = Config()
         service_manager = ServiceManager(config)
@@ -52,20 +51,8 @@ def main():
         screen_control.start()
         mqtt_helper.start()
 
-        # Default to no motion detected
-        # sensor_monitor.on_no_motion()
 
         while True:
-            # current_time = datetime.now()
-
-            # # Check if an hour has passed since the last call
-            # if current_time - last_called >= timedelta(hours=1):
-            #     if is_after_sundown(config.time_zone):
-            #         logger.info("It's nighttime. Running update_sensor.")
-            #         sensor_monitor.update_sensor()
-            #         logger.info("Sleeping for 1 hour before the next update.")
-            #     last_called = current_time  # Update the last called time
-
             service_manager.notify_status("Running")
             time.sleep(60)
 
