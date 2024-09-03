@@ -1,3 +1,6 @@
+# Project ancillary files
+run.sh
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -116,7 +119,7 @@ pyvenv.cfg
 pip-selfcheck.json
 
 .env
-# .venv
+# .venv 
 env/
 venv/
 ENV/

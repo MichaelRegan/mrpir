@@ -3,9 +3,9 @@ Description=Motion Detection Service
 After=network.target
 
 [Service]
-ExecStart=/home/pi/Projects/mrpir/venv/bin/python /home/pi/Projects/mrpir/main.py
+ExecStart=/home/pi/Projects/mrpir/venv/bin/python /home/pi/Projects/mrpir/src/main.py
 WorkingDirectory=/home/pi/Projects/mrpir
-EnvironmentFile=/home/pi/Projects/mrpir/.env
+EnvironmentFile=/home/pi/.mrpir/config/.env
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
