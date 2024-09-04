@@ -127,6 +127,34 @@ mrpir is a Python application designed to control the brightness and power state
     ```
     This command allows user services to start even when no user is logged in.
 
+6. **Manage the User Service**
+
+    You can manage the user service similarly to a system service, using the systemctl --user command:
+
+    ***Stop the service:***
+
+    ``` bash
+    systemctl --user stop mrpir.service
+    ```
+
+    ***Start and restart the service:***
+
+    ```bash
+    systemctl --user start mrpir.service
+    systemctl --user restart mrpir.service
+    ```
+
+    ***Disable the service:***
+
+    ```bash
+    systemctl --user disable mrpir.service
+    ```
+
+    ***View the system journal***
+    ```bash
+    journalctl --user -xeu mrpir.service
+    journalctl -u mrpir.service -n 100
+    ```
 ### Usage Scenarios
 
 - **Home Automation:** Integrate with Home Assistant to control the brightness of a Raspberry Pi screen based on room occupancy, creating a more energy-efficient smart home setup.
