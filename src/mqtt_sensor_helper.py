@@ -4,18 +4,15 @@ MQTT Helper module for handling MQTT connections and events.
 
 import socket
 import paho.mqtt.client as mqtt  # pylint: disable=import-error
-import logging
-from utils.logger import logger # pylint: disable=import-error
+from base_component import BaseComponent  # Import the BaseComponent class
 
-logger = logging.getLogger(__name__)
-
-class MQTTSensorHelper:
-    """
-    Helper class to manage MQTT communication, including connecting to the broker,
-    handling motion detection events, and publishing states to Home Assistant.
-    """
-
+class MQTTSensorHelper(BaseComponent):
     def __init__(self, config):
+        super().__init__(__name__)
+        """
+        Helper class to manage MQTT communication, including connecting to the broker,
+        handling motion detection events, and publishing states to Home Assistant.
+        """
         """
         Initializes the MQTTSensorHelper with the given configuration.
 
@@ -45,9 +42,9 @@ class MQTTSensorHelper:
             rc (int): The connection result.
         """
         if return_code == 0:
-            logger.info("Connected to MQTT broker")
+            self.log_info(f"Connected to MQTT broker at {self.config.host}:{self.config.port}")
         else:
-            logger.error(f"Failed to connect to MQTT broker, return code {return_code}")
+            self.log_error(f"Failed to connect to MQTT broker, return code {return_code}")
 
     def on_disconnect(self, _client, _userdata, _return_code):
         """
@@ -58,7 +55,7 @@ class MQTTSensorHelper:
             userdata (Any): The private user data.
             rc (int): The disconnection result.
         """
-        logger.warning("Disconnected from MQTT broker")
+        self.log_warning("Disconnected from MQTT broker")
 
     def on_log(self, _client, _userdata, _level, buf):
         """
@@ -70,13 +67,13 @@ class MQTTSensorHelper:
             level (int): The log level.
             buf (str): The log message.
         """
-        logger.debug(f"MQTT Log: {buf}")
+        self.log_debug(f"MQTT Log: {buf}")
 
     def on_motion(self) -> None:
         """
         Handles motion detected events by publishing the 'ON' state to Home Assistant.
         """
-        logger.debug("MQTTSensorHelper: Motion detected, publishing state ON.")
+        self.log_debug("MQTTSensorHelper: Motion detected, publishing state ON.")
         if self.last_sent_state != "ON":
             self.publish_state("ON")
 
@@ -84,7 +81,7 @@ class MQTTSensorHelper:
         """
         Handles no motion detected events by publishing the 'OFF' state to Home Assistant.
         """
-        logger.debug("MQTTSensorHelper: No motion detected, publishing state OFF.")
+        self.log_debug("MQTTSensorHelper: No motion detected, publishing state OFF.")
         if self.last_sent_state != "OFF":
             self.publish_state("OFF")
 
@@ -97,7 +94,7 @@ class MQTTSensorHelper:
         """
         if state != self.last_sent_state:
             self.client.publish(self.config.state_topic, state)
-            logger.debug(f"Published state {state} to {self.config.state_topic}")
+            self.log_debug(f"Published state {state} to {self.config.state_topic}")
             self.last_sent_state = state  # Update the last sent state
 
     def publish_home_assistant_config(self) -> None:
@@ -105,7 +102,7 @@ class MQTTSensorHelper:
         Published the Home Assistant configuration to the configured MQTT topic if the state has changed.        
         """
         self.client.publish(self.config.config_topic, self.config.config_payload)
-        logger.debug(f"Published state {self.config.config_payload} to {self.config.config_topic}")
+        self.log_debug(f"Published state {self.config.config_payload} to {self.config.config_topic}")
 
     def start(self) -> None:
         """
@@ -116,9 +113,9 @@ class MQTTSensorHelper:
             self.publish_home_assistant_config()
             self.client.loop_start()
         # except mqtt.MQTTException as error:
-        #     logger.error(f"MQTT-specific error: {error}")
+        #     self.log_error(f"MQTT-specific error: {error}")
         except socket.error as error:
-            logger.error(f"Network-related error: {error}")
+            self.log_error(f"Network-related error: {error}")
 
     def stop(self) -> None:
         """
@@ -126,4 +123,4 @@ class MQTTSensorHelper:
         """
         self.client.loop_stop()
         self.client.disconnect()
-        logger.info("MQTT client stopped and disconnected")
+        self.log_info("MQTT client stopped and disconnected")

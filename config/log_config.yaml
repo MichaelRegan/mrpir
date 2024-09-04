@@ -1,29 +1,48 @@
 version: 1
+disable_existing_loggers: False
+
 formatters:
-  simple:
+  detailed:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  json:
+    format: '{"timestamp": "%(asctime)s", "logger": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
 
 handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: detailed
+    stream: ext://sys.stdout
+
   file_handler:
     class: logging.handlers.RotatingFileHandler
     level: INFO
-    formatter: simple
-    filename: 'mrpir.log'
-    maxBytes: 5242880  # 5MB
+    formatter: detailed
+    filename: ~/.mrpir/logs/mrpir.log  # This will be dynamically updated in logger.py
+    maxBytes: 10485760  # 10MB
     backupCount: 5
-    encoding: 'utf8'
+    encoding: utf-8
 
-  journal_handler:
+  error_file_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: ~/.mrpir/logs/mrpir_error.log  # This will be dynamically updated in logger.py
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf-8
+
+  journal:
     class: systemd.journal.JournalHandler
     level: INFO
-    formatter: simple
+    formatter: detailed
 
 loggers:
-  __main__:
+  mrpir:
     level: DEBUG
-    handlers: [file_handler, journal_handler]
-    propagate: no
+    handlers: [console, file_handler, error_file_handler, journal]
+    propagate: False
 
 root:
-  level: DEBUG
-  handlers: [file_handler, journal_handler]
+  level: INFO
+  handlers: [console, error_file_handler, journal]

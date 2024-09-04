@@ -7,12 +7,9 @@ import pytz  # pylint: disable=import-error
 import threading
 from astral import LocationInfo
 from astral.sun import sun
-import logging
-from utils.logger import logger # pylint: disable=import-error
+from base_component import BaseComponent
 
-logger = logging.getLogger(__name__)
-
-class TimeEvents:
+class TimeEvents(BaseComponent):
     """
     Schedules callbacks to be fired at specific time events (e.g., sunup, sundown) and delays.
 
@@ -22,6 +19,7 @@ class TimeEvents:
     """
 
     def __init__(self, config):
+        super().__init__(__name__)
         """
         Initializes the TimeEvents class with the given configuration.
 
@@ -32,7 +30,6 @@ class TimeEvents:
         self.location = LocationInfo(config.location_name, config.region, "UTC", config.latitude, config.longitude)
         self.local_tz = pytz.timezone(self.location.timezone)
         self.timers = []  # List to keep track of active timers
-        logger.debug("Initialized TimeEvents at location '%s'", self.location.name)
 
     def _calculate_event_time(self, event: str) -> datetime:
         """
@@ -53,7 +50,7 @@ class TimeEvents:
         else:
             raise ValueError(f"Invalid event type '{event}'. Use 'sunup' or 'sundown'.")
         
-        logger.debug("Calculated event time for '%s': %s", event, event_time)
+        self.log_debug(f"Calculated event time for {event}: {event_time}")
         return event_time
 
     def schedule_sunup_callback(self, callback, delay_seconds: float = 0) -> None:
@@ -93,11 +90,11 @@ class TimeEvents:
             event_time += timedelta(days=1)
 
         total_delay = (event_time - now).total_seconds() + delay_seconds
-        logger.debug("Scheduling callback in %d seconds for event '%s'", total_delay, event)
+        self.log_debug("Scheduling callback in {total_delay} seconds for event '{event}'")
 
         def delayed_execution():
             callback()  # Execute the callback
-            logger.debug("Callback for event '%s' executed, rescheduling for next day", event)
+            self.log_debug(f"Callback for event {event} executed, rescheduling for next day")
             # Reschedule the callback for the next day's event
             self._schedule_recurring_event(event, callback, delay_seconds)
 
@@ -113,20 +110,20 @@ class TimeEvents:
             str: The time zone name (e.g., 'America/New_York').
         """
         timezone = self.local_tz.zone
-        logger.debug("Timezone for location '%s': %s", self.location.name, timezone)
+        self.log_debug(f"Timezone for location '{self.location.name}': {timezone}")
         return timezone
 
     def start(self) -> None:
         """
         Starts the time event scheduling process.
         """
-        logger.info("TimeEvents started at location '%s'", self.location.name)
+        self.log_info(f"TimeEvents started at location '{self.location.name}'")
 
     def stop(self) -> None:
         """
         Stops the time event scheduling process.
         """
-        logger.info("TimeEvents stopped at location '%s'", self.location.name)
+        self.log_info(f"TimeEvents stopped at location '{self.location.name}'")
         for timer in self.timers:
             timer.cancel()
         self.timers.clear()  # Clear the list of timers

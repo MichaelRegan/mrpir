@@ -2,14 +2,11 @@ from typing import Callable, Dict, List
 import threading
 import time
 from datetime import datetime, timedelta
-import logging
-from utils.logger import logger # pylint: disable=import-error
 import gpiozero  # pylint: disable=import-error
 from gpiozero import MotionSensor  # pylint: disable=import-error
+from base_component import BaseComponent
 
-logger = logging.getLogger(__name__)
-
-class SensorMonitor:
+class SensorMonitor(BaseComponent):
     """
     Monitors a motion sensor and triggers registered callbacks for motion and no-motion events.
 
@@ -22,12 +19,13 @@ class SensorMonitor:
     """
 
     def __init__(self, config):
+        super().__init__(__name__)
         """
         Initializes the SensorMonitor with the provided configuration.
 
         Args:
             config (dict): Configuration settings for the sensor monitor.
-        """
+        """        
         self.callbacks: Dict[str, List[Callable]] = {
             "on_motion": [],
             "on_no_motion": []
@@ -43,7 +41,7 @@ class SensorMonitor:
             # Initialize the MotionSensor using gpiozero
             self.sensor = MotionSensor(self.config.gpio_pin)
         except gpiozero.GPIOZeroError as err:
-            logger.error(f"Error initializing MotionSensor: {err}")
+            self.log_error(f"Error initializing MotionSensor: {err}")
             raise
 
     def register_callback(self, key: str, callback: Callable) -> None:
@@ -64,11 +62,11 @@ class SensorMonitor:
         Starts the sensor monitoring by linking sensor events to the appropriate callbacks.
         """
         try:
-            logger.info("SensorMonitor started and awaiting events.")
+            self.log_info("SensorMonitor started and awaiting events.")
             self.sensor.when_motion = self.on_motion
             self.sensor.when_no_motion = self.on_no_motion
         except gpiozero.GPIOZeroError as err:
-            logger.error(f"GPIOZero error in start: {err}")
+            self.log_error(f"GPIOZero error in start: {err}")
 
     def on_motion(self) -> None:
         """
@@ -76,7 +74,7 @@ class SensorMonitor:
         """
         self.motion_detected = True
         # self.last_motion_time = time.time()
-        logger.debug("MotionSensor: Motion detected")
+        self.log_debug("MotionSensor: Motion detected")
         if "on_motion" in self.callbacks:
             for callback in self.callbacks["on_motion"]:
                 callback()
@@ -90,7 +88,7 @@ class SensorMonitor:
             target_time = current_time + timedelta(seconds=self.config.no_motion_delay)
 
             start_time = time.time()
-            logger.debug(f"Current time: {current_time.strftime('%H:%M:%S')} | Target time: {target_time.strftime('%H:%M:%S')} | offset: {self.config.no_motion_delay} seconds")
+            self.log_debug(f"Current time: {current_time.strftime('%H:%M:%S')} | Target time: {target_time.strftime('%H:%M:%S')} | offset: {self.config.no_motion_delay} seconds")
 
             # Wait for the no_motion_delay period
             time.sleep(self.config.no_motion_delay)
@@ -99,7 +97,7 @@ class SensorMonitor:
             if not self.sensor.motion_detected:
                 self.motion_detected = False
                 end_time = time.time()
-                logger.debug(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
+                self.log_debug(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
                 if "on_no_motion" in self.callbacks:
                     for callback in self.callbacks["on_no_motion"]:
                         callback()
@@ -118,7 +116,7 @@ class SensorMonitor:
             else:
                 self.on_no_motion()
         except gpiozero.GPIOZeroError as err:
-            logger.error(f"GPIOZero error in update_sensor: {err}")
+            self.log_error(f"GPIOZero error in update_sensor: {err}")
 
     def stop(self) -> None:
         """
@@ -127,6 +125,6 @@ class SensorMonitor:
         try:
             self._stop_event.set()
             self.sensor.close()
-            logger.info("SensorMonitor stopped.")
+            self.log_info("SensorMonitor stopped.")
         except gpiozero.GPIOZeroError as err:
-            logger.error(f"GPIOZero error in stop: {err}")
+            self.log_error(f"GPIOZero error in stop: {err}")
