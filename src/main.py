@@ -31,6 +31,40 @@ class MainApplication(BaseComponent):
         self.log_info("Starting the mrpir application")
 
         self.service_manager = ServiceManager(self.config)
+        self.initialize_components()
+
+        self.service_manager.notify_ready()
+
+    def run(self):
+        try:
+            while self.running:
+                self.service_manager.notify_watchdog()
+                # Sleep interval for the main loop
+                time.sleep(10)
+        except KeyboardInterrupt as exception:
+            self.handle_exception(exception)
+        except Exception as error:
+            self.handle_exception(error)
+        finally:
+            self.shutdown()
+
+    def shutdown(self):
+        self.service_manager.notify_stopping()
+        self.log_info("Shutting down the application...")
+        self.stop_components()
+        self.log_info("Service shut down gracefully")
+    
+    def stop_components(self):
+        if self.sensor_monitor:
+            self.sensor_monitor.stop()
+        if self.screen_control:
+            self.screen_control.stop()
+        if self.time_events:
+            self.time_events.stop()
+        if self.mqtt_helper:
+            self.mqtt_helper.stop()
+
+    def initialize_components(self):
         self.sensor_monitor = SensorMonitor(self.config.sensor)
         self.screen_control = ScreenControl(self.config.display)
         self.time_events = TimeEvents(self.config.time_events)
@@ -62,48 +96,13 @@ class MainApplication(BaseComponent):
         if self.config.mqtt.supported:
             self.mqtt_helper.start()
 
-        self.service_manager.notify_ready()
-
-    def run(self):
-        try:
-            while self.running:
-                self.service_manager.notify_watchdog()
-                time.sleep(10)
-
-        except KeyboardInterrupt as exception:
-            self.handle_exception(exception)
-        except Exception as error:
-            self.handle_exception(error)
-        finally:
-            self.shutdown()
-
-    def shutdown(self):
-        self.service_manager.notify_stopping()
-        self.log_info("Shutting down the application...")
-        self.stop_components()
-        self.log_info("Service shut down gracefully")
-    
-    def stop_components(self):
-        if self.sensor_monitor:
-            self.sensor_monitor.stop()
-        if self.screen_control:
-            self.screen_control.stop()
-        if self.time_events:
-            self.time_events.stop()
-        if self.mqtt_helper:
-            self.mqtt_helper.stop()
-        # if self.service_manager:
-        #     self.service_manager.notify_shutdown()
-
-    # Signal handler for reloading the configuration
     def handle_reload_signal(self, signum, frame):
         self.service_manager.notify_reloading()
         self.log_info("Received SIGHUP signal, reloading configuration...")
         self.stop_components()
         self.config.reload()
-        self.initialize()
+        self.initialize_components()
 
-    # Signal handler for stopping the application
     def handle_stop_signal(self, signum, frame):
         self.log_info("Received SIGTERM signal, shutting down...")
         self.running = False
@@ -112,7 +111,6 @@ def main():
     app = MainApplication()
     app.initialize()
     app.run()
-
 
 if __name__ == "__main__":
     main()
