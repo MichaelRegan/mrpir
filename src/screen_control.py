@@ -13,8 +13,6 @@ class ScreenControl(BaseComponent):
         self.current_brightness = self.get_current_brightness()
         self.last_motion_time = None  # Track the last motion detection time
         self.motion_detected = None
-        self.on_sundown = None
-        self.on_sunup = None
         self.night_time = False
 
     def get_current_brightness(self):
@@ -61,20 +59,23 @@ class ScreenControl(BaseComponent):
                 self.turn_off_screen()
                 self.log_debug("on_no_motion: Screen turned off after sundown.")
 
-    def on_sundown(self) -> None:
+    def on_sundown(self):
         """
         Handles the event when the sun goes down.        
         """
-        self.night_time = True
-        if  not self.motion_detected:
-            self.turn_off_screen()
-            self.log_debug("on_sundown: Screen turned off after sundown.")
+        self.log_info("Sundown event handler called")
+        # Logic to handle the sundown event
+        # self.night_time = True
+        # if  not self.motion_detected:
+        #     self.turn_off_screen()
+        #     self.log_debug("on_sundown: Screen turned off after sundown.")
 
-    def on_sunup(self) -> None:
+    def on_sunup(self):
         """
         Handles the event when the sun comes up.
         """
-        self.night_time = False
+        self.log_info("Sunup event handler called")
+        # self.night_time = False
         # if (self.motion_detected == False):
         #     self.set_brightness(self.config.dim_brightness)
 

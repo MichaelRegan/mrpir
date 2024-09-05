@@ -34,15 +34,15 @@ handlers:
 
   journal:
     class: systemd.journal.JournalHandler
-    level: INFO
+    level: DEBUG
     formatter: detailed
 
 loggers:
   mrpir:
     level: DEBUG
     handlers: [console, file_handler, error_file_handler, journal]
-    propagate: False
+    propagate: True
 
 root:
-  level: INFO
-  handlers: [console, error_file_handler, journal]
+  level: DEBUG
+  handlers: [console, file_handler, error_file_handler, journal]

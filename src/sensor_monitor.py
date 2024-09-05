@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timedelta
 import gpiozero  # pylint: disable=import-error
 from gpiozero import MotionSensor  # pylint: disable=import-error
+# from src import BaseComponent
 from base_component import BaseComponent
 
 class SensorMonitor(BaseComponent):

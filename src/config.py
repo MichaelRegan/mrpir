@@ -18,6 +18,7 @@ class MQTTConfig:
     password: str = None
     config_topic: str = None
     config_payload: str = None
+    supported: bool = False
 
 @dataclass
 class DisplayConfig:
@@ -80,23 +81,34 @@ class Config:
         )
 
         # MQTT settings
-        mqtt_device = os.getenv('MQTT_DEVICE', 'mrpir')
+        mqtt_device = os.getenv('MQTT_DEVICE', None)
+        mqtt_client_id = os.getenv("MQTT_CLIENT_ID", None)
+        mqtt_host = os.getenv('MQTT_HOST', 'localhost')
+        mqtt_port = int(os.getenv('MQTT_PORT', '1883'))
+        mqtt_username = os.getenv('MQTT_USERNAME', '')
+        mqtt_password = os.getenv('MQTT_PASSWORD', '')
+
+        # If any of the critical values are blank, set them all to None
+        if not mqtt_device or not mqtt_client_id or not mqtt_host or not mqtt_port:
+            mqtt_device = mqtt_client_id = mqtt_host = mqtt_port = None
+
         self.mqtt = MQTTConfig(
+            supported = True if mqtt_device else False,
             device=mqtt_device,
-            client_id=os.getenv("MQTT_CLIENT_ID", None),
-            state_topic=f"homeassistant/binary_sensor/{mqtt_device}/state",
-            host=os.getenv('MQTT_HOST', 'localhost'),
-            port=int(os.getenv('MQTT_PORT', '1883')),
-            username=os.getenv('MQTT_USERNAME', None),
-            password=os.getenv('MQTT_PASSWORD', None),
-            config_topic=f'homeassistant/binary_sensor/{mqtt_device}/config',
+            client_id=mqtt_client_id,
+            state_topic=f"homeassistant/binary_sensor/{mqtt_device}/state" if mqtt_device else None,
+            host=mqtt_host,
+            port=mqtt_port,
+            username=mqtt_username,
+            password=mqtt_password,
+            config_topic=f'homeassistant/binary_sensor/{mqtt_device}/config' if mqtt_device else None,
             config_payload=(
                 '{"name": "%s_motion", '
                 '"device_class": "motion", '
                 '"unique_id": "pir_%s_id_%s_id", '
                 '"state_topic": "%s"}' % (
                     mqtt_device, mqtt_device, mqtt_device, f"homeassistant/binary_sensor/{mqtt_device}/state")
-            )
+            ) if mqtt_device else None
         )
 
         # Sensor settings

@@ -1,6 +1,8 @@
 # base_component.py
 
-from utils.logger import LoggerManager
+# from utils.logger import LoggerManager
+from utils import LoggerManager
+
 
 class BaseComponent:
     def __init__(self, name):

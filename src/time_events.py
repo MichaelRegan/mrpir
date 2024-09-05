@@ -102,6 +102,33 @@ class TimeEvents(BaseComponent):
         self.timers.append(timer)  # Keep track of the timer
         timer.start()
 
+    def _schedule_test_event(self, event: str, callback, delay_seconds: float) -> None:
+        """
+        Schedules a callback to be fired at the specified event time and reschedules it for the next day.
+
+        Args:
+            event (str): The event type ('sunup' or 'sundown').
+            callback (callable): The function to call after the delay.
+            delay_seconds (float): The delay in seconds after the event to wait before firing the callback.
+        """
+
+        def delayed_execution():
+            try:
+                if callable(callback):
+                    callback()
+                else:            
+                    self.log_error(f"Callback for event '{event}' is not callable")
+            except Exception as e:
+                self.log_error(f"Error in callback execution: {e}")
+
+            self.log_debug(f"Callback for event {event} executed, rescheduling for next day")
+            # Reschedule the callback for the next day's event
+            self._schedule_test_event(event, callback, delay_seconds)
+
+        timer = threading.Timer(5, delayed_execution)
+        self.timers.append(timer)  # Keep track of the timer
+        timer.start()
+
     def get_timezone(self) -> str:
         """
         Returns the time zone associated with the scheduler's location.

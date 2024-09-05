@@ -11,7 +11,6 @@ from service_manager import ServiceManager  # pylint: disable=import-error
 from base_component import BaseComponent  # pylint: disable=import-error
 from time_events import TimeEvents  # pylint: disable=import-error
 
-
 class MainApplication(BaseComponent):
     def __init__(self):
         super().__init__(__name__)
@@ -29,7 +28,11 @@ class MainApplication(BaseComponent):
         self.sensor_monitor = SensorMonitor(self.config.sensor)
         self.screen_control = ScreenControl(self.config.display)
         self.time_events = TimeEvents(self.config.time_events)
-        self.mqtt_helper = MQTTSensorHelper(self.config.mqtt)
+
+        if self.config.mqtt.supported:
+            self.mqtt_helper = MQTTSensorHelper(self.config.mqtt)
+            self.sensor_monitor.register_callback("on_motion", self.mqtt_helper.on_motion)
+            self.sensor_monitor.register_callback("on_no_motion", self.mqtt_helper.on_no_motion)
 
         self.sensor_monitor.register_callback("on_motion", self.screen_control.on_motion)
         self.sensor_monitor.register_callback("on_motion", self.mqtt_helper.on_motion)
@@ -49,7 +52,15 @@ class MainApplication(BaseComponent):
         self.sensor_monitor.start()
         self.time_events.start()
         self.screen_control.start()
-        self.mqtt_helper.start()
+
+        if self.config.mqtt.supported:
+            self.mqtt_helper.start()
+
+        self.time_events._schedule_test_event(
+            event='sundown',
+            callback=self.screen_control.on_sundown,
+            delay_seconds=10
+        )
 
         self.log_info("Initialization complete")
         self.service_manager.notify_startup()
@@ -58,7 +69,7 @@ class MainApplication(BaseComponent):
         try:
             while True:
                 self.service_manager.notify_status("Running")
-                time.sleep(60)
+                time.sleep(900)
 
         except KeyboardInterrupt as exception:
             self.handle_exception(exception)

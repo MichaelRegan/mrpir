@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass
 from unittest.mock import patch, MagicMock
-from sensor_monitor import SensorMonitor # Import the SensorMonitor class
+from src.sensor_monitor import SensorMonitor # Import the SensorMonitor class
 
 
 @dataclass
