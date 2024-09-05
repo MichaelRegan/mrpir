@@ -33,7 +33,7 @@ class MainApplication(BaseComponent):
         self.service_manager = ServiceManager(self.config)
         self.initialize_components()
 
-        self.service_manager.notify_ready()
+        self.service_manager.notify_starting()
 
     def run(self):
         try:
