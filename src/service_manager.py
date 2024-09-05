@@ -28,7 +28,6 @@ class ServiceManager(BaseComponent):
         self.notifier = sdnotify.SystemdNotifier()
         self.notify_starting()
 
-
     def notify_starting(self):
         """
         Notifies systemd that the service is starting.
@@ -36,14 +35,6 @@ class ServiceManager(BaseComponent):
         """
         self.notifier.notify("STATUS=Starting")
         self.log_info("Service is starting")
-
-    def notify_startup(self):
-        """
-        Notifies systemd that the service has started and is ready.
-        Logs the startup notification.
-        """
-        self.notifier.notify("READY=1")
-        self.log_info("Service started and notified systemd")
 
     def notify_status(self, status):
         """
@@ -77,13 +68,20 @@ class ServiceManager(BaseComponent):
         Notifies systemd that the service is stopping.
         Logs the stopping notification.
         """
-        self.notifier.notify("STATUS=Stopping")
+        self.notifier.notify("STOPPING=1")
         self.log_info("Service is stopping")
 
-    def notify_shutdown(self):
+    def notify_watchdog(self):
         """
-        Notifies systemd that the service is stopping.
-        Logs the shutdown notification.
+        Notifies systemd that the service is still alive.
+        Logs the watchdog notification.
         """
-        self.notifier.notify("STOPPING=1")
-        self.log_info("Service is shutting down")
+        self.notifier.notify("WATCHDOG=1")
+
+    def notify_reloading(self):
+        """
+        Notifies systemd that the service is reloading.
+        Logs the reloading notification.
+        """
+        self.notifier.notify("RELOADING=1")
+        self.log_info("Service is reloading")

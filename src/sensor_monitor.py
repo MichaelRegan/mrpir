@@ -4,7 +4,6 @@ import time
 from datetime import datetime, timedelta
 import gpiozero  # pylint: disable=import-error
 from gpiozero import MotionSensor  # pylint: disable=import-error
-# from src import BaseComponent
 from base_component import BaseComponent
 
 class SensorMonitor(BaseComponent):
@@ -15,28 +14,19 @@ class SensorMonitor(BaseComponent):
         config (dict): Configuration settings for the sensor monitor.
         callbacks (Dict[str, List[Callable]]): A dictionary of callback lists for motion events.
         motion_detected (bool): Tracks whether motion is currently detected.
-        _stop_event (threading.Event): Event to signal the sensor monitor to stop.
+        shutdown_event (threading.Event): Event to signal the sensor monitor to stop.
         sensor (MotionSensor): The motion sensor instance from gpiozero.
     """
 
     def __init__(self, config):
         super().__init__(__name__)
-        """
-        Initializes the SensorMonitor with the provided configuration.
-
-        Args:
-            config (dict): Configuration settings for the sensor monitor.
-        """        
         self.callbacks: Dict[str, List[Callable]] = {
             "on_motion": [],
             "on_no_motion": []
         }
         self.config = config
         self.motion_detected = False
-        
-        # set the last motion time far enough back to trigger the first no_motion event
-        # self.last_motion_time = time.time() - self.config.no_motion_delay
-        self._stop_event = threading.Event()
+        self.shutdown_event = threading.Event()
 
         try:
             # Initialize the MotionSensor using gpiozero
@@ -74,7 +64,6 @@ class SensorMonitor(BaseComponent):
         Handles the motion detected event and triggers the 'on_motion' callbacks.
         """
         self.motion_detected = True
-        # self.last_motion_time = time.time()
         self.log_debug("MotionSensor: Motion detected")
         if "on_motion" in self.callbacks:
             for callback in self.callbacks["on_motion"]:
@@ -87,21 +76,24 @@ class SensorMonitor(BaseComponent):
         def delayed_no_motion():
             current_time = datetime.now()
             target_time = current_time + timedelta(seconds=self.config.no_motion_delay)
-
             start_time = time.time()
             self.log_debug(f"Current time: {current_time.strftime('%H:%M:%S')} | Target time: {target_time.strftime('%H:%M:%S')} | offset: {self.config.no_motion_delay} seconds")
 
-            # Wait for the no_motion_delay period
-            time.sleep(self.config.no_motion_delay)
-
-            # Ensure no new motion was detected during the delay
-            if not self.sensor.motion_detected:
-                self.motion_detected = False
-                end_time = time.time()
-                self.log_debug(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
-                if "on_no_motion" in self.callbacks:
-                    for callback in self.callbacks["on_no_motion"]:
-                        callback()
+            # Wait for the no_motion_delay period or the shutdown event
+            if not self.shutdown_event.wait(self.config.no_motion_delay):
+                try:
+                    # Ensure no new motion was detected during the delay
+                    if not self.sensor.motion_detected and not self.shutdown_event.is_set():
+                        self.motion_detected = False
+                        end_time = time.time()
+                        self.log_debug(f"MotionSensor: No motion detected (after delay). Total delay: {end_time - start_time} seconds")
+                        if "on_no_motion" in self.callbacks:
+                            for callback in self.callbacks["on_no_motion"]:
+                                callback()
+                except gpiozero.exc.GPIODeviceClosed:
+                    self.log_debug("MotionSensor: The device has been closed or uninitialized during delay.")
+                except Exception as e:
+                    self.log_error(f"Unexpected error in delayed_no_motion: {e}")
 
         # Start a thread to handle the delay
         threading.Thread(target=delayed_no_motion).start()
@@ -124,7 +116,7 @@ class SensorMonitor(BaseComponent):
         Stops the sensor monitoring and releases any resources held by the sensor.
         """
         try:
-            self._stop_event.set()
+            self.shutdown_event.set()
             self.sensor.close()
             self.log_info("SensorMonitor stopped.")
         except gpiozero.GPIOZeroError as err:

@@ -63,15 +63,20 @@ class Config:
         # Load environment variables from the specified .env file location
         env_path = os.path.expanduser('~/.mrpir/config/.env')
         load_dotenv(dotenv_path=env_path)
-        
+        self.load_configuration()
 
+    def load_configuration(self):
+        """
+        Loads the configuration from environment variables.
+        Sets default values if not specified in the environment.
+        """
         # Display settings
         self.display = DisplayConfig(
             brightness_path=os.getenv('BRIGHTNESS_PATH', '/sys/class/backlight/10-0045/brightness'),
             dim_brightness=int(os.getenv('DIM_BRIGHTNESS', '0')),
             bright_brightness=int(os.getenv('BRIGHT_BRIGHTNESS', '90')),
             transition_time=int(os.getenv('TRANSITION_TIME', '2')),
-            timezone=os.getenv('timezone', 'America/Los_Angeles')
+            timezone=os.getenv('TIMEZONE', 'America/Los_Angeles')
         )
 
         # Timeout settings
@@ -93,7 +98,7 @@ class Config:
             mqtt_device = mqtt_client_id = mqtt_host = mqtt_port = None
 
         self.mqtt = MQTTConfig(
-            supported = True if mqtt_device else False,
+            supported=True if mqtt_device else False,
             device=mqtt_device,
             client_id=mqtt_client_id,
             state_topic=f"homeassistant/binary_sensor/{mqtt_device}/state" if mqtt_device else None,
@@ -117,10 +122,17 @@ class Config:
             no_motion_delay=int(os.getenv('NO_MOTION_DELAY', '60'))
         )
 
-        # time event settings
+        # Time event settings
         self.time_events = TimeEventsConfig(
             location_name=os.getenv('LOCATION_NAME', 'New York'),
             region=os.getenv('REGION', 'USA'),
             latitude=float(os.getenv('LATITUDE', '40.7128')),
             longitude=float(os.getenv('LONGITUDE', '-74.0060'))
         )
+
+    def reload(self):
+        """
+        Reloads the configuration from environment variables.
+        """
+        self.load_configuration()
+        print("Configuration reloaded")

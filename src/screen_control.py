@@ -145,7 +145,7 @@ class ScreenControl(BaseComponent):
             self.current_brightness = 0
             self.motion_detected = False
         else:
-            brightness = self.get_current_brightness()
+            self.brightness = self.get_current_brightness()
             if self.get_current_brightness() == self.config.dim_brightness:
                 self.motion_detected = False
             else:

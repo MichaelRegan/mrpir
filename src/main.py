@@ -2,6 +2,7 @@
 Main module for the application.
 """
 
+import signal
 import time
 from config import Config
 from sensor_monitor import SensorMonitor  # pylint: disable=import-error
@@ -20,6 +21,11 @@ class MainApplication(BaseComponent):
         self.screen_control = None
         self.time_events = None
         self.mqtt_helper = None
+        self.running = True
+
+        # Register the signal handlers for SIGHUP and SIGTERM
+        signal.signal(signal.SIGHUP, self.handle_reload_signal)
+        signal.signal(signal.SIGTERM, self.handle_stop_signal)
 
     def initialize(self):
         self.log_info("Starting the mrpir application")
@@ -33,11 +39,11 @@ class MainApplication(BaseComponent):
             self.mqtt_helper = MQTTSensorHelper(self.config.mqtt)
             self.sensor_monitor.register_callback("on_motion", self.mqtt_helper.on_motion)
             self.sensor_monitor.register_callback("on_no_motion", self.mqtt_helper.on_no_motion)
+        else:
+            self.log_info("MQTT is not configured and will not be used")
 
         self.sensor_monitor.register_callback("on_motion", self.screen_control.on_motion)
-        self.sensor_monitor.register_callback("on_motion", self.mqtt_helper.on_motion)
         self.sensor_monitor.register_callback("on_no_motion", self.screen_control.on_no_motion)
-        self.sensor_monitor.register_callback("on_no_motion", self.mqtt_helper.on_no_motion)
 
         self.time_events.schedule_sundown_callback(
             self.screen_control.on_sundown,
@@ -56,20 +62,13 @@ class MainApplication(BaseComponent):
         if self.config.mqtt.supported:
             self.mqtt_helper.start()
 
-        self.time_events._schedule_test_event(
-            event='sundown',
-            callback=self.screen_control.on_sundown,
-            delay_seconds=10
-        )
-
-        self.log_info("Initialization complete")
-        self.service_manager.notify_startup()
+        self.service_manager.notify_ready()
 
     def run(self):
         try:
-            while True:
-                self.service_manager.notify_status("Running")
-                time.sleep(900)
+            while self.running:
+                self.service_manager.notify_watchdog()
+                time.sleep(10)
 
         except KeyboardInterrupt as exception:
             self.handle_exception(exception)
@@ -81,6 +80,10 @@ class MainApplication(BaseComponent):
     def shutdown(self):
         self.service_manager.notify_stopping()
         self.log_info("Shutting down the application...")
+        self.stop_components()
+        self.log_info("Service shut down gracefully")
+    
+    def stop_components(self):
         if self.sensor_monitor:
             self.sensor_monitor.stop()
         if self.screen_control:
@@ -89,11 +92,21 @@ class MainApplication(BaseComponent):
             self.time_events.stop()
         if self.mqtt_helper:
             self.mqtt_helper.stop()
-        if self.service_manager:
-            self.service_manager.notify_shutdown()
+        # if self.service_manager:
+        #     self.service_manager.notify_shutdown()
 
-        self.log_info("Service shut down gracefully")
+    # Signal handler for reloading the configuration
+    def handle_reload_signal(self, signum, frame):
+        self.service_manager.notify_reloading()
+        self.log_info("Received SIGHUP signal, reloading configuration...")
+        self.stop_components()
+        self.config.reload()
+        self.initialize()
 
+    # Signal handler for stopping the application
+    def handle_stop_signal(self, signum, frame):
+        self.log_info("Received SIGTERM signal, shutting down...")
+        self.running = False
 
 def main():
     app = MainApplication()

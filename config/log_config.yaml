@@ -16,7 +16,7 @@ handlers:
 
   file_handler:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: DEBUG
     formatter: detailed
     filename: ~/.mrpir/logs/mrpir.log  # This will be dynamically updated in logger.py
     maxBytes: 10485760  # 10MB
@@ -34,7 +34,7 @@ handlers:
 
   journal:
     class: systemd.journal.JournalHandler
-    level: DEBUG
+    level: INFO
     formatter: detailed
 
 loggers:

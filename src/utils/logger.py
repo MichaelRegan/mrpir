@@ -5,6 +5,16 @@ import yaml
 from queue import Queue
 from logging.handlers import QueueHandler, QueueListener
 
+class ExcludeSystemdNotifierFilter(logging.Filter):
+    """
+    Custom filter to exclude messages from 'sdnotify.SystemdNotifier' with specific content.
+    """
+    def filter(self, record):
+        # Exclude messages from 'sdnotify.SystemdNotifier' with specific content
+        if "STATUS=Running" in record.msg or "WATCHDOG=1" in record.msg:
+            return False
+        return True
+
 class LoggerManager:
     _instance = None
 
@@ -50,6 +60,9 @@ class LoggerManager:
                                 handler['filename'] = os.path.join(log_dir, os.path.basename(handler['filename']))
 
                         logging.config.dictConfig(config)
+                        # Add the custom filter programmatically
+                        self._add_custom_filters()
+
                     else:
                         raise ValueError("Loaded YAML configuration is empty.")
                 except yaml.YAMLError as err:
@@ -58,6 +71,17 @@ class LoggerManager:
         else:
             logging.basicConfig(level=logging.INFO)
             logging.warning(f"Logging configuration file not found: {config_path}")
+
+    def _add_custom_filters(self):
+        # Get the root logger
+        root_logger = logging.getLogger()
+        
+        # Create an instance of the custom filter
+        custom_filter = ExcludeSystemdNotifierFilter()
+        
+        # Add the custom filter to the desired handlers
+        for handler in root_logger.handlers:
+            handler.addFilter(custom_filter)
 
     @staticmethod
     def get_logger(name):
