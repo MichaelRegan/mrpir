@@ -12,8 +12,14 @@ from service_manager import ServiceManager  # pylint: disable=import-error
 from base_component import BaseComponent  # pylint: disable=import-error
 from time_events import TimeEvents  # pylint: disable=import-error
 
+
 class MainApplication(BaseComponent):
+    """
+    Main Application class responsible for initializing and running
+    the application's services.
+    """
     def __init__(self):
+        """Initialize the MainApplication with default settings."""
         super().__init__(__name__)
         self.config = Config()
         self.service_manager = None
@@ -28,14 +34,14 @@ class MainApplication(BaseComponent):
         signal.signal(signal.SIGTERM, self.handle_stop_signal)
 
     def initialize(self):
+        """Initialize the main application components."""
         self.log_info("Starting the mrpir application")
 
         self.service_manager = ServiceManager(self.config)
         self.initialize_components()
 
-        self.service_manager.notify_starting()
-
     def run(self):
+        """Run the main application loop."""
         try:
             while self.running:
                 self.service_manager.notify_watchdog()
@@ -49,12 +55,14 @@ class MainApplication(BaseComponent):
             self.shutdown()
 
     def shutdown(self):
+        """Shutdown the main application gracefully."""
         self.service_manager.notify_stopping()
         self.log_info("Shutting down the application...")
         self.stop_components()
         self.log_info("Service shut down gracefully")
     
     def stop_components(self):
+        """Stop all components of the application."""
         if self.sensor_monitor:
             self.sensor_monitor.stop()
         if self.screen_control:
@@ -65,19 +73,28 @@ class MainApplication(BaseComponent):
             self.mqtt_helper.stop()
 
     def initialize_components(self):
+        """Initialize all components of the application."""
         self.sensor_monitor = SensorMonitor(self.config.sensor)
         self.screen_control = ScreenControl(self.config.display)
         self.time_events = TimeEvents(self.config.time_events)
 
         if self.config.mqtt.supported:
             self.mqtt_helper = MQTTSensorHelper(self.config.mqtt)
-            self.sensor_monitor.register_callback("on_motion", self.mqtt_helper.on_motion)
-            self.sensor_monitor.register_callback("on_no_motion", self.mqtt_helper.on_no_motion)
+            self.sensor_monitor.register_callback(
+                "on_motion", self.mqtt_helper.on_motion
+            )
+            self.sensor_monitor.register_callback(
+                "on_no_motion", self.mqtt_helper.on_no_motion
+            )
         else:
             self.log_info("MQTT is not configured and will not be used")
 
-        self.sensor_monitor.register_callback("on_motion", self.screen_control.on_motion)
-        self.sensor_monitor.register_callback("on_no_motion", self.screen_control.on_no_motion)
+        self.sensor_monitor.register_callback(
+            "on_motion", self.screen_control.on_motion
+        )
+        self.sensor_monitor.register_callback(
+            "on_no_motion", self.screen_control.on_no_motion
+        )
 
         self.time_events.schedule_sundown_callback(
             self.screen_control.on_sundown,
@@ -96,7 +113,10 @@ class MainApplication(BaseComponent):
         if self.config.mqtt.supported:
             self.mqtt_helper.start()
 
+        self.service_manager.notify_ready()
+
     def handle_reload_signal(self, signum, frame):
+        """Handle the SIGHUP signal to reload the configuration."""
         self.service_manager.notify_reloading()
         self.log_info("Received SIGHUP signal, reloading configuration...")
         self.stop_components()
@@ -104,13 +124,17 @@ class MainApplication(BaseComponent):
         self.initialize_components()
 
     def handle_stop_signal(self, signum, frame):
+        """Handle the SIGTERM signal to shut down the application."""
         self.log_info("Received SIGTERM signal, shutting down...")
         self.running = False
 
+
 def main():
+    """Main entry point for the application."""
     app = MainApplication()
     app.initialize()
     app.run()
+
 
 if __name__ == "__main__":
     main()

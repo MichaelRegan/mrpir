@@ -2,9 +2,11 @@
 Loads and stores configuration settings from environment variables.
 Provides default values for settings if not specified in the environment.
 """
+
 import os
 from dataclasses import dataclass
-from dotenv import load_dotenv # pylint: disable=import-error
+from dotenv import load_dotenv  # pylint: disable=import-error
+
 
 @dataclass
 class MQTTConfig:
@@ -20,6 +22,7 @@ class MQTTConfig:
     config_payload: str = None
     supported: bool = False
 
+
 @dataclass
 class DisplayConfig:
     """A class to store display configuration settings."""
@@ -29,11 +32,12 @@ class DisplayConfig:
     bright_brightness: int
     transition_time: int
 
+
 @dataclass
 class TimeoutConfig:
     """A class to store timeout configuration settings."""
-    # no_motion_timeout: int
     sundown_timeout: int
+
 
 @dataclass
 class SensorConfig:
@@ -41,8 +45,10 @@ class SensorConfig:
     gpio_pin: int
     no_motion_delay: int
 
+
 @dataclass
 class TimeEventsConfig:
+    """A class to store time event configuration settings."""
     location_name: str
     region: str
     latitude: float
@@ -72,7 +78,10 @@ class Config:
         """
         # Display settings
         self.display = DisplayConfig(
-            brightness_path=os.getenv('BRIGHTNESS_PATH', '/sys/class/backlight/10-0045/brightness'),
+            brightness_path=os.getenv(
+                'BRIGHTNESS_PATH',
+                '/sys/class/backlight/10-0045/brightness'
+            ),
             dim_brightness=int(os.getenv('DIM_BRIGHTNESS', '0')),
             bright_brightness=int(os.getenv('BRIGHT_BRIGHTNESS', '90')),
             transition_time=int(os.getenv('TRANSITION_TIME', '2')),
@@ -81,7 +90,6 @@ class Config:
 
         # Timeout settings
         self.timeouts = TimeoutConfig(
-            # no_motion_timeout=int(os.getenv('NO_MOTION_TIMEOUT', '60')),
             sundown_timeout=int(os.getenv('SUNDOWN_TIMEOUT', '3600'))
         )
 
@@ -93,26 +101,29 @@ class Config:
         mqtt_username = os.getenv('MQTT_USERNAME', '')
         mqtt_password = os.getenv('MQTT_PASSWORD', '')
 
-        # If any of the critical values are blank, set them all to None
+        # Set critical values to None if any are blank
         if not mqtt_device or not mqtt_client_id or not mqtt_host or not mqtt_port:
             mqtt_device = mqtt_client_id = mqtt_host = mqtt_port = None
 
         self.mqtt = MQTTConfig(
-            supported=True if mqtt_device else False,
+            supported=bool(mqtt_device),
             device=mqtt_device,
             client_id=mqtt_client_id,
-            state_topic=f"homeassistant/binary_sensor/{mqtt_device}/state" if mqtt_device else None,
+            state_topic=f"homeassistant/binary_sensor/{mqtt_device}/state"
+            if mqtt_device else None,
             host=mqtt_host,
             port=mqtt_port,
             username=mqtt_username,
             password=mqtt_password,
-            config_topic=f'homeassistant/binary_sensor/{mqtt_device}/config' if mqtt_device else None,
+            config_topic=f'homeassistant/binary_sensor/{mqtt_device}/config'
+            if mqtt_device else None,
             config_payload=(
                 '{"name": "%s_motion", '
                 '"device_class": "motion", '
                 '"unique_id": "pir_%s_id_%s_id", '
                 '"state_topic": "%s"}' % (
-                    mqtt_device, mqtt_device, mqtt_device, f"homeassistant/binary_sensor/{mqtt_device}/state")
+                    mqtt_device, mqtt_device, mqtt_device,
+                    f"homeassistant/binary_sensor/{mqtt_device}/state")
             ) if mqtt_device else None
         )
 
@@ -131,8 +142,6 @@ class Config:
         )
 
     def reload(self):
-        """
-        Reloads the configuration from environment variables.
-        """
+        """Reloads the configuration from environment variables."""
         self.load_configuration()
         print("Configuration reloaded")

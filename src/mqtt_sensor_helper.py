@@ -6,19 +6,20 @@ import socket
 import paho.mqtt.client as mqtt  # pylint: disable=import-error
 from base_component import BaseComponent  # Import the BaseComponent class
 
+
 class MQTTSensorHelper(BaseComponent):
+    """
+    Helper class to manage MQTT communication, including connecting to the broker,
+    handling motion detection events, and publishing states to Home Assistant.
+    """
     def __init__(self, config):
-        super().__init__(__name__)
-        """
-        Helper class to manage MQTT communication, including connecting to the broker,
-        handling motion detection events, and publishing states to Home Assistant.
-        """
         """
         Initializes the MQTTSensorHelper with the given configuration.
 
         Args:
             config (dict): Configuration settings for the MQTT client.
         """
+        super().__init__(__name__)
         self.config = config
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
@@ -39,10 +40,12 @@ class MQTTSensorHelper(BaseComponent):
             client (mqtt.Client): The client instance for this callback.
             userdata (Any): The private user data.
             flags (dict): Response flags sent by the broker.
-            rc (int): The connection result.
+            return_code (int): The connection result.
         """
         if return_code == 0:
-            self.log_info(f"Connected to MQTT broker at {self.config.host}:{self.config.port}")
+            self.log_info(
+                f"Connected to MQTT broker at {self.config.host}:{self.config.port}"
+            )
         else:
             self.log_error(f"Failed to connect to MQTT broker, return code {return_code}")
 
@@ -53,7 +56,7 @@ class MQTTSensorHelper(BaseComponent):
         Args:
             client (mqtt.Client): The client instance for this callback.
             userdata (Any): The private user data.
-            rc (int): The disconnection result.
+            return_code (int): The disconnection result.
         """
         self.log_warning("Disconnected from MQTT broker")
 
@@ -95,14 +98,17 @@ class MQTTSensorHelper(BaseComponent):
         if state != self.last_sent_state:
             self.client.publish(self.config.state_topic, state)
             self.log_debug(f"Published state {state} to {self.config.state_topic}")
-            self.last_sent_state = state  # Update the last sent state
+            self.last_sent_state = state
 
     def publish_home_assistant_config(self) -> None:
         """
-        Published the Home Assistant configuration to the configured MQTT topic if the state has changed.        
+        Publishes the Home Assistant configuration to the configured MQTT topic.
         """
         self.client.publish(self.config.config_topic, self.config.config_payload)
-        self.log_debug(f"Published state {self.config.config_payload} to {self.config.config_topic}")
+        self.log_debug(
+            f"Published config {self.config.config_payload} to "
+            f"{self.config.config_topic}"
+        )
 
     def start(self) -> None:
         """

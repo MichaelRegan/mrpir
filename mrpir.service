@@ -6,12 +6,15 @@ After=network.target
 ExecStart=/home/pi/Projects/mrpir/venv/bin/python /home/pi/Projects/mrpir/src/main.py
 WorkingDirectory=/home/pi/Projects/mrpir
 EnvironmentFile=/home/pi/.mrpir/config/.env
-StandardOutput=inherit
-StandardError=inherit
-Restart=always
+Environment="PYTHONUNBUFFERED=1"
+#StandardOutput=inherit
+#StandardError=inherit
+Restart=on-failure
 Type=notify
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
 NotifyAccess=all
-WatchdogSec=90s  # Optional: Set a watchdog timer if desired
+WatchdogSec=60
 
 [Install]
 WantedBy=default.target
