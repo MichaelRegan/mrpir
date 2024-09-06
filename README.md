@@ -74,6 +74,8 @@ mrpir is a Python application designed to control the brightness and power state
     ```
 
     ### MQTT Settings
+    Other than username and password, leaving parts or all of these settings will result in MQTT support being omitted
+
     ```dotenv
         MQTT_HOST=""            # MQTT server address as FQDN or IP
         MQTT_PORT=1883          # MQTT server port
@@ -138,10 +140,13 @@ mrpir is a Python application designed to control the brightness and power state
     ```
 
     ***Start and restart the service:***
+    
+    Reload will refresh the configuration from the .env file.
 
     ```bash
     systemctl --user start mrpir.service
     systemctl --user restart mrpir.service
+    systemctl --user reload mrpir.service
     ```
 
     ***Disable the service:***
