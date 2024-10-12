@@ -156,12 +156,12 @@ class ScreenControl(BaseComponent):
         """
         try:
             self.log_debug("Checking screen status.")
-            result = subprocess.run(
-                ['wlr-randr'], stdout=subprocess.PIPE, text=True, check=True
+            result = subprocess.run(['wlr-randr', '--output', 'DSI-1'],
+                stdout=subprocess.PIPE, text=True, check=True
             )
             if 'DSI-1' in result.stdout:
                 for line in result.stdout.splitlines():
-                    if 'DSI-1' in line and 'disabled' in line:
+                    if 'Enabled: no' in line:
                         self.log_info("Screen is off.")
                         return True
             self.log_debug("Screen is on.")
